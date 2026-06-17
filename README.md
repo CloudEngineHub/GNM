@@ -61,11 +61,14 @@ and semantic sampling of parameters.
 2.  Create virtual environment and install dependencies:
 
     ```bash
-    conda create -n myenv python=3.12
-    conda activate myenv
-    pip install -r requirements.txt
+    conda env create -f environment.yml
+    conda activate gnm
     pip install -e .
     ```
+
+    NOTE: Due to the dependency on the Tensorflow package, The Python version is
+    currently limited to 3.13. If you are on Windows platform, you might need to
+    set the Python version to 3.12.
 
 ## Getting Started
 
