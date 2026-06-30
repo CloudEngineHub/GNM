@@ -46,7 +46,7 @@ import jax
 import jax.numpy as jnp
 import jaxtyping as jt
 import numpy as np
-import typeguard
+_typechecker = None
 
 GNMVersion = gnm_specs.GNMVersion
 GNMMajorVersion = gnm_specs.GNMMajorVersion
@@ -237,7 +237,7 @@ class GNM(gnm_base.GNMBase):
     """The dimensionality of the linear expression basis (E)."""
     return self.expression_basis.shape[0]
 
-  @jt.jaxtyped(typechecker=typeguard.typechecked)
+  @jt.jaxtyped(typechecker=_typechecker)
   def __call__(
       self,
       identity: jt.Float[jt.Array, '*N {self.identity_dim}'],
@@ -280,7 +280,7 @@ class GNM(gnm_base.GNMBase):
         vertices, joints, rotations, translation, precision=precision
     )
 
-  @jt.jaxtyped(typechecker=typeguard.typechecked)
+  @jt.jaxtyped(typechecker=_typechecker)
   def apply_linear_blend_skinning(
       self,
       local_vertices: jt.Float[jt.Array, '*N {self.num_vertices} 3'],
@@ -354,7 +354,7 @@ class GNM(gnm_base.GNMBase):
 
     return vertices_skinned
 
-  @jt.jaxtyped(typechecker=typeguard.typechecked)
+  @jt.jaxtyped(typechecker=_typechecker)
   def vertex_positions_bind_pose(
       self,
       identity: jt.Float[jt.Array, '*N {self.identity_dim}'],
@@ -392,7 +392,7 @@ class GNM(gnm_base.GNMBase):
 
     return self.template_vertex_positions + identity_deltas + expression_deltas
 
-  @jt.jaxtyped(typechecker=typeguard.typechecked)
+  @jt.jaxtyped(typechecker=_typechecker)
   def compute_pose_correctives(
       self,
       rotations: jt.Float[jt.Array, '*N {self.num_joints} 3'],
@@ -438,7 +438,7 @@ class GNM(gnm_base.GNMBase):
     )
     return pose_deltas_flattened.reshape([*batch_dims, self.num_vertices, 3])
 
-  @jt.jaxtyped(typechecker=typeguard.typechecked)
+  @jt.jaxtyped(typechecker=_typechecker)
   def joint_positions_bind_pose(
       self,
       identity: jt.Float[jt.Array, '*N {self.identity_dim}'],
@@ -520,7 +520,7 @@ class GNM(gnm_base.GNMBase):
     output = jnp.stack(transforms_world, axis=-3)
     return output
 
-  @jt.jaxtyped(typechecker=typeguard.typechecked)
+  @jt.jaxtyped(typechecker=_typechecker)
   def get_posed_joint_transforms(
       self,
       identity: jt.Float[jt.Array, '*N {self.identity_dim}'],

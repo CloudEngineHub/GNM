@@ -226,16 +226,18 @@ potential implications for fairness and representation in their specific
 applications.
 
 ## Citation
-If you use GNM in your research, please cite:
-
-```
-(Note: Placeholder - a BibTeX entry should be provided for the relevant publication.)
-```
+TBD
 
 ## Contributing
 We'd love to accept your patches and contributions to this project! See
 [CONTRIBUTING.md](CONTRIBUTING.md) for more information on how to get started
 and how we handle external contributions.
+
+## Contributors
+The GNM ecosystem is made possible by the dedicated efforts of many
+contributors:
+
+TBD
 
 ## License
 This project is licensed under the Apache License, Version 2.0. See the

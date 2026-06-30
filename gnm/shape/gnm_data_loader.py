@@ -73,7 +73,7 @@ def load_model_from_runfile(
   model_file = _get_model_path_from_version_and_variant(version, variant)
 
   logging.info(
-      'Loading GNM model version %s, variant %s from g3 runfiles: %s',
+      'Loading GNM model version %s, variant %s from runfiles: %s',
       version,
       variant,
       model_file,

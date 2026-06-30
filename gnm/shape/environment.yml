@@ -23,3 +23,9 @@ dependencies:
   - tqdm
   - trimesh
   - typeguard
+  - rtree
+  - pylint
+  - pytorch
+  - pip:
+      - tensorflow-graphics
+

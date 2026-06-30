@@ -14,7 +14,7 @@
 
 """GNM catalog constants."""
 
-MAINTAINED_MAJOR_VERSIONS = []
+MAINTAINED_MAJOR_VERSIONS = ['v3']
 MAJOR_VERSION_TO_VARIANTS_MAP = {'v3': ['head']}
 ALL_VARIANTS = ['head']
 VARIANT_TO_MODEL_FILE_NAME_MAP = {'head': 'gnm_head'}
