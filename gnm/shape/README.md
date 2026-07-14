@@ -1,10 +1,15 @@
-# GNM Shape: Generative aNthropometric Model
+# GNM: Generative aNthropometric Model
 
-**GNM Shape** is a state-of-the-art parametric 3D statistical model of the human
-head, learned from a large dataset of 3D scans. It provides fine-grained control
-over facial identity, expressions, and head pose. This package contains the
-core NumPy, JAX, PyTorch, and TensorFlow based GNM shape model implementations,
-along with tools for visualization and semantic sampling of parameters.
+[![CI (Linux)](https://github.com/google/gnm/actions/workflows/ci-linux.yml/badge.svg)](https://github.com/google/gnm/actions/workflows/ci-linux.yml)
+[![CI (macOS)](https://github.com/google/gnm/actions/workflows/ci-macos.yml/badge.svg)](https://github.com/google/gnm/actions/workflows/ci-macos.yml)
+[![CI (Windows)](https://github.com/google/gnm/actions/workflows/ci-windows.yml/badge.svg)](https://github.com/google/gnm/actions/workflows/ci-windows.yml)
+[![Linting Check](https://github.com/google/gnm/actions/workflows/lint.yml/badge.svg)](https://github.com/google/gnm/actions/workflows/lint.yml)
+
+**GNM** is a state-of-the-art parametric 3D statistical model of the human head,
+learned from a large dataset of 3D scans. It provides fine-grained control over
+facial identity, expressions, and head pose. This package contains the core
+NumPy, JAX, PyTorch, and TensorFlow based GNM shape model implementations, along
+with tools for visualization and semantic sampling of parameters.
 
 ![GNM Teaser Image](assets/readme/teaser.gif)
 
@@ -145,8 +150,7 @@ To experiment with generating a human head mesh from custom identity,
 expression, joint rotations and global translation, please see
 `gnm/shape/demos/gnm_head_demo.ipynb`.
 
-![sampling](gnm/assets/readme/gnm_head_demo.gif)
-
+![sampling](assets/readme/gnm_head_demo.gif)
 
 ## Using the Semantic Sampler
 Generate meaningful identity and expression parameters using the
@@ -194,7 +198,7 @@ mesh_identity.export("sampled_identity_face.obj")
 To experiment with identity and expression sampling and blending, please see
 `gnm/shape/demos/semantic_gnm_demo.ipynb`.
 
-![sampling](gnm/assets/readme/semantic_gnm_demo.gif)
+![sampling](assets/readme/semantic_gnm_demo.gif)
 
 ## Model Parameters
 
@@ -247,6 +251,10 @@ technical report for a more detailed discussion of these limitations and the
 dataset statistics. Users should be aware of these limitations and consider the
 potential implications for fairness and representation in their specific
 applications.
+
+## Formal Model Definition
+Please see [formal_definition](assets/readme/gnm_head_formal_definition.pdf) for
+the formal definition of the GNM head model.
 
 ## Citation
 Coming Soon.
