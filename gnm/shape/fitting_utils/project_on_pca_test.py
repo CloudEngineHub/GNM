@@ -214,7 +214,11 @@ class ProjectOnPcaTest(parameterized.TestCase):
     major_version = gnm_numpy.GNMMajorVersion(version.removeprefix('v'))
     gnm = gnm_numpy.GNM.from_local(major_version, gnm_numpy.GNMVariant.HEAD)
 
-    expected_regions = ['left_eye', 'right_eye', 'mouth']
+    expected_regions = [
+        'left_eye_region',
+        'right_eye_region',
+        'lower_face_region',
+    ]
     region_components = gnm_utils.region_expression_components(gnm)
     self.assertContainsSubset(
         expected_regions,
@@ -224,9 +228,9 @@ class ProjectOnPcaTest(parameterized.TestCase):
 
     # Take the first num_components / 3 components from each region.
     n_take = math.ceil(num_components / 3)
-    left_eye_take = region_components['left_eye'][:n_take]
-    right_eye_take = region_components['right_eye'][:n_take]
-    mouth_take = region_components['mouth'][:n_take]
+    left_eye_take = region_components['left_eye_region'][:n_take]
+    right_eye_take = region_components['right_eye_region'][:n_take]
+    mouth_take = region_components['lower_face_region'][:n_take]
     expression_basis_subset = np.concatenate(
         [left_eye_take, right_eye_take, mouth_take], axis=0
     )[:num_components]

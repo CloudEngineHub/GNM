@@ -480,7 +480,7 @@ class GNMUtilsMethodsTest(BaseGNMUtilsTest):
       self.skipTest(f'variant {variant} not supported in {version}.')
     gnm = self.gnms[version][variant]
 
-    region_name = 'left_eye'
+    region_name = 'left_eye_region'
     vertex_group_name = 'expression_basis_left_eye'
 
     # Get the region sigmas.

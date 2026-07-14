@@ -160,6 +160,44 @@ def _standardize_gnm_data_types(data: dict[str, Any]) -> dict[str, Any]:
   return data
 
 
+def _rename_legacy_basis_names(data: dict[str, Any]) -> None:
+  """Renames legacy identity and expression basis names to their new names."""
+  if 'identity_names' in data:
+    identity_renames = [
+        ('eyeballs_', 'eyes_'),
+    ]
+    new_identity_names = []
+    for name in data['identity_names']:
+      name_str = str(name)
+      for old_prefix, new_prefix in identity_renames:
+        if name_str.startswith(old_prefix) and not name_str.startswith(
+            new_prefix
+        ):
+          name_str = new_prefix + name_str[len(old_prefix) :]
+          break
+      new_identity_names.append(name_str)
+    data['identity_names'] = new_identity_names
+
+  if 'expression_names' in data:
+    expression_renames = [
+        ('left_eye_', 'left_eye_region_'),
+        ('right_eye_', 'right_eye_region_'),
+        ('mouth_', 'lower_face_region_'),
+        ('eyeballs_', 'pupils_'),
+    ]
+    new_expression_names = []
+    for name in data['expression_names']:
+      name_str = str(name)
+      for old_prefix, new_prefix in expression_renames:
+        if name_str.startswith(old_prefix) and not name_str.startswith(
+            new_prefix
+        ):
+          name_str = new_prefix + name_str[len(old_prefix) :]
+          break
+      new_expression_names.append(name_str)
+    data['expression_names'] = new_expression_names
+
+
 def _populate_legacy_vertex_group_aliases(data: dict[str, Any]) -> None:
   """Populates standardized aliases for legacy vertex groups."""
   if 'vertex_group_names' not in data or 'vertex_groups' not in data:

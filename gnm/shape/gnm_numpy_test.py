@@ -526,7 +526,7 @@ class GNMNumpyTest(parameterized.TestCase):
     indices = gnm_np.vertex_group_indices(vertex_group)
     all_expressions_no_pupil = np.ones(gnm_np.expression_dim)
     regions = gnm_utils.expression_to_regions(all_expressions_no_pupil, gnm_np)
-    regions['eyeballs'][:] = 0.0
+    regions['pupils'][:] = 0.0
     all_expressions_no_pupil = gnm_utils.regions_to_expression(regions, gnm_np)
     all_expressions_applied = gnm_np(expression=all_expressions_no_pupil)
     deltas = all_expressions_applied - gnm_np.template_vertex_positions
@@ -817,7 +817,13 @@ class GNMNumpyTest(parameterized.TestCase):
 
     regexes = [
         f'^{n}_[0-9][0-9][0-9]$'
-        for n in ['left_eye', 'right_eye', 'mouth', 'tongue', 'eyeballs']
+        for n in [
+            'left_eye_region',
+            'right_eye_region',
+            'lower_face_region',
+            'tongue',
+            'pupils',
+        ]
     ] + ['^tongue_mean$']
     region_indices = []
     for regex in regexes:
