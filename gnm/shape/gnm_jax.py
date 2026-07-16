@@ -16,21 +16,23 @@
 
 Usage:
   ```
-  gnm = gnm_jax.from_local(version=GNMVersion.V3, variant=GNMVariant.HEAD)
+  gnm = gnm_jax.GNM.from_local(
+      version=gnm_jax.GNMMajorVersion.V3, variant=gnm_jax.GNMVariant.HEAD
+  )
 
   # Generate batches of parameters.
   n_batch = 5
-  identity = np.random.uniform(shape=(n_batch, gnm.identity_dim))
-  expression = np.random.uniform(shape=(n_batch, gnm.expression_dim))
-  rotations = np.random.uniform(shape=[n_batch, gnm.num_joints, 3])
-  translation = np.random.uniform(shape=(n_batch, 3))
+  identity = np.random.uniform(size=(n_batch, gnm.identity_dim))
+  expression = np.random.uniform(size=(n_batch, gnm.expression_dim))
+  rotations = np.random.uniform(size=[n_batch, gnm.num_joints, 3])
+  translation = np.random.uniform(size=(n_batch, 3))
   vertices = gnm(identity, expression, rotations, translation)
   ```
 
   # This module is differentiable.
   grad_func = jax.grad(
      lambda *args: jnp.square(gnm(*args)).mean(),
-     argnums=np.Array([0, 1, 2, 3]))
+     argnums=(0, 1, 2, 3))
   grads = grad_func(identity, expression, rotations, translation)
 """
 

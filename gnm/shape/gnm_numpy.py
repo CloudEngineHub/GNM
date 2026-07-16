@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""NumPy implementation of the GNM model .
+"""NumPy implementation of the GNM model.
 
 Example usage:
   ```
-  gnm = gnm_numpy.from_local(version=GNMVersion.V3, variant=GNMVariant.HEAD)
+  gnm = gnm_numpy.GNM.from_local(
+      version=gnm_numpy.GNMMajorVersion.V3, variant=gnm_numpy.GNMVariant.HEAD
+  )
 
   # Generate random identity, expression, rotations, translation parameters
   identity = np.random.normal(size=gnm.identity_dim)
