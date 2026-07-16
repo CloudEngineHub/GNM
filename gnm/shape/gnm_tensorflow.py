@@ -125,14 +125,18 @@ class GNM(gnm_xnp.GNM):
     v2 = face_vertices[..., 2, :]
     face_normals_area = tf.experimental.numpy.cross(v1 - v0, v2 - v0, axis=-1)
 
-    data = tf.reshape(face_normals_area[:, :, None, :], (-1, 3))
+    # Replicate each face normal for the three corner vertices it contributes
+    # to, matching the flattened (triangle, corner) order of the segment ids.
+    data = tf.reshape(
+        tf.tile(face_normals_area[:, :, None, :], [1, 1, 3, 1]), (-1, 3)
+    )
     segment_ids = tf.reshape(self.triangles, (-1,))
     segment_ids = tf.tile(segment_ids[None, :], [batch_size, 1])
 
     batch_offset = (
         tf.range(batch_size, dtype=segment_ids.dtype)[:, None] * num_vertices
     )
-    flat_segment_ids = segment_ids + batch_offset
+    flat_segment_ids = tf.reshape(segment_ids + batch_offset, (-1,))
     flat_normals = tf.math.unsorted_segment_sum(
         data, flat_segment_ids, num_segments=batch_size * num_vertices
     )

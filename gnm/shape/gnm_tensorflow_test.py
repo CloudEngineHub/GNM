@@ -110,6 +110,32 @@ class GNMTensorflowTest(parameterized.TestCase):
 
   @parameterized.product(
       version=_MAINTAINED_MAJOR_GNM_VERSIONS,
+      variant=tuple(_SUPPORTED_VARIANTS),
+      batch_dims=BATCH_DIMS,
+  )
+  def test_compute_vertex_normals_numpy_parity(
+      self, version: str, variant: str, batch_dims: tuple[int, ...]
+  ):
+    """Tests that TensorFlow vertex normals match the NumPy implementation."""
+    if variant not in self.gnms_np[version]:
+      self.skipTest(f'variant {variant} not supported in {version}.')
+    gnm_np = self.gnms_np[version][variant]
+    gnm_tf = self.gnms_tf[version][variant]
+
+    parameters_np = gnm_test_utils.random_gnm_parameters(
+        gnm_np, batch_shape=batch_dims, seed=self.rng
+    )
+    vertices_np = gnm_np(**parameters_np)
+    desired = gnm_np.compute_vertex_normals(vertices_np)
+
+    vertices_tf = tf.convert_to_tensor(vertices_np, dtype=tf.float32)
+    actual = gnm_tf.compute_vertex_normals(vertices_tf)
+
+    self.assertEqual(tuple(actual.shape), vertices_np.shape)
+    np.testing.assert_allclose(actual.numpy(), desired, atol=1e-4)
+
+  @parameterized.product(
+      version=_MAINTAINED_MAJOR_GNM_VERSIONS,
       variant=(gnm_tensorflow.GNMVariant.HEAD,),
       batch_size=[(), (2,), (2, 3)],
   )
