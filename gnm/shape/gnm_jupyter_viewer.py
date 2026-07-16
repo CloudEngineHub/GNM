@@ -12,7 +12,7 @@ _get_vertex_colors = vertex_colors_module.get_vertex_colors
 
 
 class GNMMeshViewer:
-  """Sets up a three.js viewer for G-Nome meshes in Jupyter Notebook."""
+  """Sets up a three.js viewer for GNM meshes in Jupyter Notebook."""
 
   def __init__(
       self,
@@ -207,7 +207,7 @@ class GNMMeshViewer:
     display(Javascript(js_code))
 
   def update(self, vertices: np.ndarray) -> None:
-    """Update G-Nome mesh vertices."""
+    """Update GNM mesh vertices."""
     self.vertices = vertices
     vertices_list = vertices.ravel().tolist()
     js_code = f"""

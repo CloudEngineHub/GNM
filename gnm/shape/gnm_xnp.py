@@ -148,7 +148,7 @@ class GNM(gnm_base.GNMBase):
 
   @property
   def xnp(self) -> enp.NpModule:
-    """Returns the backend module dynamically from G-Nome array state."""
+    """Returns the backend module dynamically from GNM array state."""
     return self._xnp
 
   def __getstate__(self):
