@@ -124,7 +124,14 @@ class GNM(gnm_xnp.GNM):
       self,
       vertices: npt.NDArray[np.floating],
   ) -> npt.NDArray[np.floating]:
-    """Compute vertex normals for GNM mesh."""
+    """Compute vertex normals for GNM mesh.
+
+    Args:
+      vertices: Vertex positions with shape `(..., V, 3)`.
+
+    Returns:
+      Vertex normals with shape `(..., V, 3)`.
+    """
     batch_dims = vertices.shape[:-2]
     num_vertices = vertices.shape[-2]
     vertices_flat = vertices.reshape(-1, num_vertices, 3)
