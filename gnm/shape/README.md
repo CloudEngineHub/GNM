@@ -242,6 +242,27 @@ The Semantic Sampler models
 (`expression_decoder_model.h5`, `identity_decoder_model.h5`) are located as
 in `gnm/shape/data/semantic_sampler`.
 
+## UV Mapping
+
+The GNM head mesh features a structured UV layout divided into five logical
+regions:
+
+| Region | Description | Vertex Groups |
+| :--- | :--- | :--- |
+| **Skin** | The head and face skin. | `skin` |
+| **Teeth** | Upper and lower teeth and gums. | `upper_teeth_and_gums` / `lower_teeth_and_gums` |
+| **Tongue** | The tongue. | `tongue` |
+| **Eye Interior** | Internal eye structures (sclera, pupil, iris). | `eye_interiors` |
+| **Eye Exterior** | External eye structures (cornea). | `eye_exteriors` |
+
+We provide UV coordinates for both the quad topology (`quad_uvs`, shape
+`[Q, 4, 2]`) and the triangulated topology (`triangle_uvs`, shape `[T, 3, 2]`).
+Left and right eye UVs are mapped to the same UV space regions (overlapping) to
+optimize texture space. Below is the visualization of the edge flow for the quad
+UV map. A similar layout is available for the triangulated version.
+
+![Quad UV Maps](assets/readme/uv_flow_quads.png)
+
 ## Model Limitations in Human Representation
 This model was trained on datasets using binary gender categories and four broad
 demographic groups based on conventions in 3DMM literature and data
