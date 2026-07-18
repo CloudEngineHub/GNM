@@ -73,7 +73,7 @@ git clone https://github.com/google/gnm.git
 cd gnm/gnm/shape
 ```
 
-*   **Core (NumPy + Tensorflow only):**
+*   **Core (NumPy + TensorFlow only):**
     
     ```bash
     pip install -e .
@@ -239,7 +239,7 @@ basis, expression basis, skinning weights, and UV layout. This file is provided
 within the `gnm/shape/data/versions/v{MAJOR}_{MINOR}` directory.
 
 The Semantic Sampler models
-(`expression_decoder_model.h5`, `identity_decoder_model.h5`) are located as
+(`expression_decoder_model.h5`, `identity_decoder_model.h5`) are located
 in `gnm/shape/data/semantic_sampler`.
 
 ## UV Mapping
