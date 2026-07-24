@@ -200,6 +200,12 @@ To experiment with identity and expression sampling and blending, please see
 
 ![sampling](assets/readme/semantic_gnm_demo.gif)
 
+## XR Blocks Demo
+
+Check out the interactive [XR Blocks GNM Head Demo](https://xrblocks.github.io/docs/samples/GNM-Head/) (courtesy of Ruofei Du), which works on XR devices (best in Android XR), mobile phones as well as desktop browser. The demo showcases the GNM Head model including 3D face geometry, identity and expression parameter tuning, and semantic sampling. The source code can be found on [github.com/google/xrblocks/tree/main/demos/gnm](https://github.com/google/xrblocks/tree/main/demos/gnm)
+
+![XR Blocks Demo](assets/readme/xr_blocks_demo.gif)
+
 ## Model Parameters
 
 The GNM model is controlled by two primary sets of coefficients that determine
