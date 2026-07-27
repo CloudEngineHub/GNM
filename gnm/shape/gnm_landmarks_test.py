@@ -15,6 +15,7 @@
 """Tests for validating and loading GNM landmarks configurations."""
 
 from absl.testing import absltest
+
 from gnm.shape import gnm_landmarks
 from gnm.shape.data.versions import gnm_specs
 import numpy as np
