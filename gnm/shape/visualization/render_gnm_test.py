@@ -41,7 +41,7 @@ def _write_gif(
     name: str,
     images: np.ndarray,
     fps: int = 10,
-) -> None:
+):
   """Writes an animated GIF to the undeclared outputs directory."""
   outputs_dir = epath.Path(outputs_dir)
   gif_path = outputs_dir / f'{name}.gif'
@@ -52,7 +52,7 @@ def _write_images(
     outputs_dir: epath.Path | str,
     name: str,
     images: np.ndarray,
-) -> None:
+):
   """Writes a row of images to the undeclared outputs directory."""
   png_path = (
       outputs_dir / f'{name}.png'  # pyrefly: ignore[unsupported-operation]

@@ -26,25 +26,25 @@ from gnm.shape import gnm_xnp
 
 class GNMXnpTest(absltest.TestCase):
 
-  def test_annotations_match_schema(self) -> None:
+  def test_annotations_match_schema(self):
     expected_attributes = set(gnm_data_schema.GNM_DATA_ATTRIBUTES)
     actual_attributes = set(gnm_xnp.GNM.__annotations__.keys())
     self.assertEqual(actual_attributes, expected_attributes)
 
-  def test_dataclass_fields_match_schema(self) -> None:
+  def test_dataclass_fields_match_schema(self):
     expected_attributes = set(gnm_data_schema.GNM_DATA_ATTRIBUTES)
     actual_fields = {f.name for f in dataclasses.fields(gnm_xnp.GNM)}
     self.assertEqual(actual_fields, expected_attributes)
 
-  def test_cannot_instantiate_abstract_gnm(self) -> None:
+  def test_cannot_instantiate_abstract_gnm(self):
     with self.assertRaises(TypeError):
       gnm_xnp.GNM()  # pytype: disable=not-instantiable,missing-parameter  # pylint: disable=abstract-class-instantiated
 
-  def test_from_model_data_raises_not_implemented(self) -> None:
+  def test_from_model_data_raises_not_implemented(self):
     with self.assertRaises(NotImplementedError):
       gnm_xnp.GNM._from_model_data({})  # pylint: disable=protected-access
 
-  def test_cannot_instantiate_concrete_gnm_via_constructor(self) -> None:
+  def test_cannot_instantiate_concrete_gnm_via_constructor(self):
     with self.assertRaises(TypeError):
       gnm_numpy.GNM()  # pytype: disable=not-instantiable,missing-parameter
 
