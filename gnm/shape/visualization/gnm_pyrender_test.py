@@ -32,7 +32,7 @@ _MAJOR_VERSION_TO_VARIANTS_MAP = gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP
 _OUTPUTS_DIR = epath.Path(os.environ['TEST_UNDECLARED_OUTPUTS_DIR'])
 
 
-class GnomePyrenderTest(parameterized.TestCase):
+class GNMPyrenderTest(parameterized.TestCase):
 
   gnms: dict[str, gnm_numpy.GNM]
 

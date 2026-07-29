@@ -1,5 +1,6 @@
 # GNM: Generative aNthropometric Model
 
+[![Technical Report](https://img.shields.io/badge/arXiv-2607.23687-b31b1b.svg)](https://arxiv.org/abs/2607.23687)
 [![CI Linux](https://github.com/google/gnm/actions/workflows/ci-shape-linux.yml/badge.svg)](https://github.com/google/gnm/actions/workflows/ci-shape-linux.yml)
 [![CI macOS](https://github.com/google/gnm/actions/workflows/ci-shape-macos.yml/badge.svg)](https://github.com/google/gnm/actions/workflows/ci-shape-macos.yml)
 [![CI Windows](https://github.com/google/gnm/actions/workflows/ci-shape-windows.yml/badge.svg)](https://github.com/google/gnm/actions/workflows/ci-shape-windows.yml)
@@ -74,7 +75,7 @@ cd gnm/gnm/shape
 ```
 
 *   **Core (NumPy + TensorFlow only):**
-    
+
     ```bash
     pip install -e .
     ```
@@ -90,7 +91,7 @@ cd gnm/gnm/shape
     ```bash
     pip install -e ".[pytorch]"
     ```
-    
+
 *   **All supported frameworks and development tools:**
 
     ```bash
@@ -200,6 +201,12 @@ To experiment with identity and expression sampling and blending, please see
 
 ![sampling](assets/readme/semantic_gnm_demo.gif)
 
+## XR Blocks Demo
+
+Check out the interactive [XR Blocks GNM Head Demo](https://xrblocks.github.io/docs/samples/GNM-Head/) (courtesy of Ruofei Du), which works on XR devices (best in Android XR), mobile phones as well as desktop browser. The demo showcases the GNM Head model including 3D face geometry, identity and expression parameter tuning, and semantic sampling. The source code can be found on [github.com/google/xrblocks/tree/main/demos/gnm](https://github.com/google/xrblocks/tree/main/demos/gnm)
+
+![XR Blocks Demo](assets/readme/xr_blocks_demo.gif)
+
 ## Model Parameters
 
 The GNM model is controlled by two primary sets of coefficients that determine
@@ -273,14 +280,21 @@ dataset statistics. Users should be aware of these limitations and consider the
 potential implications for fairness and representation in their specific
 applications.
 
-## Formal Model Definition
-Please see [formal_definition](assets/readme/gnm_head_formal_definition.pdf) for
-the formal definition of the GNM head model.
+## Technical Report
+
+To learn more about the technical details including the formal model definition, evaluation on downstream tasks, comparison to SotA as well as data provenance, please read the [technical report](https://arxiv.org/abs/2607.23687).
 
 ## Citation
 
 ```bash
-coming soon
+@article{ploumpis2026gnmhead,
+  title={GNM Head: A Generative aNthropometric Model of the human head},
+  author={Ploumpis, S. and Bednarik, J. and Zoss, G. and Guseinov, R. and Prasso, L. and Chandran, P. and Boyne, O. and Choutas, V. and Bolkart, T. and Wang, D. and Chai, M. and Qiu, D. and Winberg, S. and Rainer, G. and Bridgeman, L. and Vicini, D. and Riviere, J. and Boetzel, Y. and Koumis, A. and Busch, J. and Herrera, C. and Still, J. and Ysebert, S. and Lincoln, P. and Escolano, S. O. and Rhemann, C. and Wood, E. and Beeler, T. and Zafeiriou, S.},
+  year={2026},
+  eprint={2607.23687},
+  archivePrefix={arXiv},
+  url={https://arxiv.org/abs/2607.23687},
+}
 ```
 
 ## Contributing

@@ -45,7 +45,7 @@ class DummyGNM(gnm_base.GNMBase):
       self,
       version: gnm_specs.GNMVersion,
       variant: gnm_specs.GNMVariant,
-  ) -> None:
+  ):
     self.version = version
     self.variant = variant
 
@@ -66,18 +66,18 @@ class DummyGNM(gnm_base.GNMBase):
 
 class GNMBaseTest(absltest.TestCase):
 
-  def setUp(self) -> None:
+  def setUp(self):
     super().setUp()
     self.gnm = DummyGNM(
         version=_TEST_FULL_VERSION,
         variant=_TEST_VARIANT,
     )
 
-  def test_properties(self) -> None:
+  def test_properties(self):
     self.assertEqual(self.gnm.major_version, _TEST_MAJOR_VERSION)
     self.assertEqual(self.gnm.body_part, _TEST_BODY_PART)
 
-  def test_from_gnm(self) -> None:
+  def test_from_gnm(self):
     new_gnm = DummyGNM.from_gnm(self.gnm)
     self.assertIsInstance(new_gnm, DummyGNM)
     self.assertEqual(new_gnm.version, _TEST_FULL_VERSION)

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for G-Nome identity and expression sampler."""
+"""Tests for GNM identity and expression sampler."""
 
 # pylint: disable=protected-access
 

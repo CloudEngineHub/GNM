@@ -16,9 +16,9 @@
 
 Usage:
   ```
-  gnm = gnm_tensorflow.from_local(
-      version=GNMVersion.V3,
-      variant=GNMVariant.HEAD
+  gnm = gnm_tensorflow.GNM.from_local(
+      version=gnm_tensorflow.GNMMajorVersion.V3,
+      variant=gnm_tensorflow.GNMVariant.HEAD,
   )
 
   # Generate batches of parameters.

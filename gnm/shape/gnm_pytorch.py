@@ -16,7 +16,10 @@
 
 Usage:
   ```
-  gnm = gnm_pytorch.from_local(version=GNMVersion.V3, variant=GNMVariant.HEAD)
+  gnm = gnm_pytorch.GNM.from_local(
+      version=gnm_pytorch.GNMMajorVersion.V3,
+      variant=gnm_pytorch.GNMVariant.HEAD,
+  )
 
   # Generate batches of parameters.
   n_batch = 5
