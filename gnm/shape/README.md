@@ -237,7 +237,7 @@ relevant for the GNM v3.x.
 
 ### Joint Parameters
 
-*   **Shape:** rotations: `[batch_size, 4x3 Rotation matrix]`, global translation: `[batch_size, 3]`
+*   **Shape:** rotations: `[batch_size, num_joints, 3]` (axis-angle), global translation: `[batch_size, 3]`
 *   **Description:** Controls the global head position and joint angles for head pose and eyeball orientation.
 
 ## Model Data
