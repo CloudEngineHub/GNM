@@ -16,18 +16,19 @@
 
 from typing import Any, Sequence
 from etils import enp
+from gnm.shape import gnm_typing
 
-enpt = enp.typing
+enpt = gnm_typing.enpt
 
 _EPSILON = 1e-8
 
 
 def take(
-    array: enpt.FloatArray['...'],  # pyrefly: ignore[not-a-type]
-    indices: enpt.IntArray['...'],  # pyrefly: ignore[not-a-type]
+    array: enpt.FloatArray['...'],
+    indices: enpt.IntArray['...'],
     axis: int = 0,
     xnp: Any = None,
-) -> enpt.FloatArray['...']:  # pyrefly: ignore[not-a-type]
+) -> enpt.FloatArray['...']:
   """Extracts elements from an array along a specified axis.
 
   This is a backend-agnostic wrapper around backend specific operations.
@@ -63,9 +64,9 @@ def take(
 def eye(
     size: int,
     dtype: Any,
-    reference_array: enpt.FloatArray['...'],  # pyrefly: ignore[not-a-type]
+    reference_array: enpt.FloatArray['...'],
     xnp: Any = None,
-) -> enpt.FloatArray['...']:  # pyrefly: ignore[not-a-type]
+) -> enpt.FloatArray['...']:
   """Creates a 2D identity matrix.
 
   Args:
@@ -87,11 +88,11 @@ def eye(
 
 
 def reshape_with_batch_dims(
-    array: enpt.FloatArray['...'],  # pyrefly: ignore[not-a-type]
+    array: enpt.FloatArray['...'],
     target_suffix: tuple[int, ...],
-    reference_array: enpt.FloatArray['...'],  # pyrefly: ignore[not-a-type]
+    reference_array: enpt.FloatArray['...'],
     num_reference_non_batch_dims: int,
-) -> enpt.FloatArray['...']:  # pyrefly: ignore[not-a-type]
+) -> enpt.FloatArray['...']:
   """Reshapes an array by prepending the batch shape of a reference array.
 
   This function extracts the batch dimensions of `reference_array` (all but the
@@ -123,11 +124,11 @@ def reshape_with_batch_dims(
 
 
 def zeros_with_batch_dims(
-    reference_array: enpt.FloatArray['...'],  # pyrefly: ignore[not-a-type]
+    reference_array: enpt.FloatArray['...'],
     num_reference_non_batch_dims: int,
     suffix_shape: tuple[int, ...],
     dtype: Any,
-) -> enpt.FloatArray['...']:  # pyrefly: ignore[not-a-type]
+) -> enpt.FloatArray['...']:
   """Creates a zeros array with the batch shape of a reference array.
 
   This function extracts the batch dimensions of `reference_array` (all but the
@@ -161,9 +162,9 @@ def zeros_with_batch_dims(
 
 
 def axis_angle_to_rotation_matrix(
-    axis_angle: enpt.FloatArray['... 3'],  # pyrefly: ignore[not-a-type]
+    axis_angle: enpt.FloatArray['... 3'],
     epsilon: float = _EPSILON,
-) -> enpt.FloatArray['... 3 3']:  # pyrefly: ignore[not-a-type]
+) -> enpt.FloatArray['... 3 3']:
   """Builds a 3x3 rotation matrix from an axis-angle vector.
 
   Uses Rodrigues' rotation formula:
@@ -218,11 +219,11 @@ def axis_angle_to_rotation_matrix(
 
 
 def joint_transforms_world(
-    joints: enpt.FloatArray['... J 3'],  # pyrefly: ignore[not-a-type]
-    rotations: enpt.FloatArray['... J 3'],  # pyrefly: ignore[not-a-type]
-    translation: enpt.FloatArray['... 3'],  # pyrefly: ignore[not-a-type]
+    joints: enpt.FloatArray['... J 3'],
+    rotations: enpt.FloatArray['... J 3'],
+    translation: enpt.FloatArray['... 3'],
     joint_parent_indices: Sequence[int],
-) -> enpt.FloatArray['... J 4 4']:  # pyrefly: ignore[not-a-type]
+) -> enpt.FloatArray['... J 4 4']:
   """Computes the world-space transformation matrices for each joint.
 
   This function traverses the joint hierarchy and applies forward kinematics
@@ -300,13 +301,13 @@ def joint_transforms_world(
 
 
 def linear_blend_skinning(
-    local_vertices: enpt.FloatArray['... V 3'],  # pyrefly: ignore[not-a-type]
-    joint_positions: enpt.FloatArray['... J 3'],  # pyrefly: ignore[not-a-type]
-    rotations: enpt.FloatArray['... J 3'],  # pyrefly: ignore[not-a-type]
-    translation: enpt.FloatArray['... 3'],  # pyrefly: ignore[not-a-type]
-    skinning_weights: enpt.FloatArray['J V'],  # pyrefly: ignore[not-a-type]
+    local_vertices: enpt.FloatArray['... V 3'],
+    joint_positions: enpt.FloatArray['... J 3'],
+    rotations: enpt.FloatArray['... J 3'],
+    translation: enpt.FloatArray['... 3'],
+    skinning_weights: enpt.FloatArray['J V'],
     joint_parent_indices: Sequence[int],
-) -> enpt.FloatArray['... V 3']:  # pyrefly: ignore[not-a-type]
+) -> enpt.FloatArray['... V 3']:
   """Poses the GNM vertices using Linear Blend Skinning (LBS).
 
   Linear Blend Skinning computes posed vertex positions by taking a weighted
@@ -377,16 +378,12 @@ def linear_blend_skinning(
 
 
 def vertex_positions_bind_pose(
-    identity: enpt.FloatArray['... I'] | None,  # pyrefly: ignore[not-a-type]
-    expression: enpt.FloatArray['... E'] | None,  # pyrefly: ignore[not-a-type]
-    template_vertex_positions: (
-        enpt.FloatArray['V 3']  # pyrefly: ignore[not-a-type]
-    ),
-    vertex_identity_basis: (
-        enpt.FloatArray['I V 3']  # pyrefly: ignore[not-a-type]
-    ),
-    expression_basis: enpt.FloatArray['E V 3'],  # pyrefly: ignore[not-a-type]
-) -> enpt.FloatArray['... V 3']:  # pyrefly: ignore[not-a-type]
+    identity: enpt.FloatArray['... I'] | None,
+    expression: enpt.FloatArray['... E'] | None,
+    template_vertex_positions: enpt.FloatArray['V 3'],
+    vertex_identity_basis: enpt.FloatArray['I V 3'],
+    expression_basis: enpt.FloatArray['E V 3'],
+) -> enpt.FloatArray['... V 3']:
   """Computes vertices in the bind pose, with identity and expression applied.
 
   This function computes the neutral shape of the model by applying the identity
@@ -423,14 +420,10 @@ def vertex_positions_bind_pose(
 
 
 def joint_positions_bind_pose(
-    identity: enpt.FloatArray['... I'] | None,  # pyrefly: ignore[not-a-type]
-    template_joint_positions: (
-        enpt.FloatArray['J 3']  # pyrefly: ignore[not-a-type]
-    ),
-    joint_identity_basis: (
-        enpt.FloatArray['I J 3']  # pyrefly: ignore[not-a-type]
-    ),
-) -> enpt.FloatArray['... J 3']:  # pyrefly: ignore[not-a-type]
+    identity: enpt.FloatArray['... I'] | None,
+    template_joint_positions: enpt.FloatArray['J 3'],
+    joint_identity_basis: enpt.FloatArray['I J 3'],
+) -> enpt.FloatArray['... J 3']:
   """Joint positions in the bind pose, with identity basis applied.
 
   Computes joint locations in the bind pose by applying the identity shape
@@ -454,16 +447,12 @@ def joint_positions_bind_pose(
 
 
 def compute_pose_correctives(
-    rotations: enpt.FloatArray['... J 3'] | None,  # pyrefly: ignore[not-a-type]
-    pose_correctives_regressor: (
-        enpt.FloatArray['F F2'] | None  # pyrefly: ignore[not-a-type]
-    ),
-    template_vertex_positions: (
-        enpt.FloatArray['V 3']  # pyrefly: ignore[not-a-type]
-    ),
+    rotations: enpt.FloatArray['... J 3'] | None,
+    pose_correctives_regressor: enpt.FloatArray['F F2'] | None,
+    template_vertex_positions: enpt.FloatArray['V 3'],
     num_joints: int,
     num_vertices: int,
-) -> enpt.FloatArray['... V 3']:  # pyrefly: ignore[not-a-type]
+) -> enpt.FloatArray['... V 3']:
   """Applies pose-dependent corrective shape offsets to vertices.
 
   Pose correctives modify the mesh vertices based on joint rotation angles to
@@ -510,7 +499,7 @@ def compute_pose_correctives(
 
 
 def _graph_shape(
-    array: enpt.FloatArray['...'],  # pyrefly: ignore[not-a-type]
+    array: enpt.FloatArray['...'],
 ) -> tuple[int, ...]:
   """Returns the shape of an array, supporting graph-mode arrays."""
   if enp.lazy.is_tf(array):
