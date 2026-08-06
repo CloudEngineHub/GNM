@@ -147,7 +147,11 @@ class GNM(gnm_xnp.GNM):
     vertex_normals = np.zeros_like(vertices_flat)
     np.add.at(
         vertex_normals,
-        (slice(None), self.triangles, slice(None)),
+        (  # pyrefly: ignore[bad-argument-type]
+            slice(None),
+            self.triangles,
+            slice(None),
+        ),
         face_normals_area[:, :, None, :],
     )
 

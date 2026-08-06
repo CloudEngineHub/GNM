@@ -216,10 +216,11 @@ def render_gnm(
   if background_color.dtype == np.uint8:
     background_color = background_color.astype(np.float32) / 255.0
 
-  texture = _load_texture(gnm_np, texture)
-  textures = list(texture.values())
-  if not set(texture.keys()).issubset(gnm_np.mesh_component_names):
-    missing_parts = set(texture.keys()) - set(gnm_np.mesh_component_names)
+  texture = _load_texture(gnm_np, texture)  # pyrefly: ignore[bad-assignment]
+  textures = list(texture.values())  # pyrefly: ignore[missing-attribute]
+  texture_keys = texture.keys()  # pyrefly: ignore[missing-attribute]
+  if not set(texture_keys).issubset(gnm_np.mesh_component_names):
+    missing_parts = set(texture_keys) - set(gnm_np.mesh_component_names)
     raise ValueError(
         f'Texture keys {missing_parts} are not GNM part names'
         f' {gnm_np.mesh_component_names}.'
@@ -255,7 +256,11 @@ def render_gnm(
   world_to_camera = batchify(world_to_camera, 2)
   camera_to_image = batchify(camera_to_image, 2)
   background_color = batchify(background_color, 3)
-  texture = {part: batchify(texture[part], 3) for part in texture}
+  texture_dict = {}
+  for part in texture:  # pyrefly: ignore[not-iterable]
+    x = texture[part]  # pyrefly: ignore[bad-index, unsupported-operation]
+    texture_dict[part] = batchify(x, 3)
+  texture = texture_dict
 
   renders = gnm_pyrender.render(
       vertices=vertices,
@@ -456,7 +461,9 @@ def get_look_at_world_to_camera(
 
   azimuthal_angle = _adjust_scalar_shape(azimuthal_angle, batch_dims)
   polar_angle = _adjust_scalar_shape(polar_angle, batch_dims)
-  camera_distance = _adjust_scalar_shape(camera_distance, batch_dims)
+  camera_distance = _adjust_scalar_shape(
+      camera_distance, batch_dims  # pyrefly: ignore[bad-argument-type]
+  )
   share_camera = _adjust_scalar_shape(share_camera, batch_dims)
   y_up = _adjust_scalar_shape(y_up, batch_dims)
 
@@ -776,7 +783,10 @@ def _load_texture(
   if texture is DEFAULT_TEXTURE:
     edgeflow_path = _EDGEFLOW_TEXTURE_BY_BODY_PART.get(gnm_np.body_part)
     if edgeflow_path is not None:
-      texture_dict['skin'] = _load_edgeflow_texture(edgeflow_path)[..., None]
+      edgeflow = _load_edgeflow_texture(edgeflow_path)
+      texture_dict['skin'] = (
+          edgeflow[..., None]  # pyrefly: ignore[unsupported-operation]
+      )
   elif isinstance(texture, np.ndarray):
     texture_dict['skin'] = texture
   elif isinstance(texture, dict):
@@ -840,6 +850,8 @@ def _get_batch_dim(*arrays: tuple[np.ndarray | None, int]) -> tuple[int, ...]:
 
   # Verify that all arrays can be broadcast together.
   for batch_dim in batch_dims:
-    np.broadcast_shapes(batch_dim, max_batch_dims)
+    np.broadcast_shapes(
+        batch_dim, max_batch_dims  # pyrefly: ignore[bad-argument-type]
+    )
 
-  return max_batch_dims
+  return max_batch_dims  # pyrefly: ignore[bad-return]

@@ -150,7 +150,9 @@ class RenderGNMTest(parameterized.TestCase):
     kwargs = (
         self.rendering_kwargs | cam_dict  # pyrefly: ignore[bad-argument-type]
     )
-    renders = render_gnm.render_gnm(gnm_np, **kwargs)
+    renders = render_gnm.render_gnm(
+        gnm_np, **kwargs  # pyrefly: ignore[bad-argument-type]
+    )
     self.assertLen(renders, spin_period)
     _write_gif(
         self.outputs_dir,

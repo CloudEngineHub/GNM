@@ -107,26 +107,28 @@ class GNM(gnm_base.GNMBase):
 
   version: gnm_specs.GNMVersion
   variant: gnm_specs.GNMVariant
-  template_vertex_positions: enpt.FloatArray
-  template_joint_positions: enpt.FloatArray
-  vertex_identity_basis: enpt.FloatArray
-  joint_identity_basis: enpt.FloatArray
-  expression_basis: enpt.FloatArray
+  template_vertex_positions: enpt.FloatArray  # pyrefly: ignore[not-a-type]
+  template_joint_positions: enpt.FloatArray  # pyrefly: ignore[not-a-type]
+  vertex_identity_basis: enpt.FloatArray  # pyrefly: ignore[not-a-type]
+  joint_identity_basis: enpt.FloatArray  # pyrefly: ignore[not-a-type]
+  expression_basis: enpt.FloatArray  # pyrefly: ignore[not-a-type]
   identity_names: Sequence[str]
   joint_names: Sequence[str]
   expression_names: Sequence[str]
   joint_parent_indices: Sequence[int]
-  skinning_weights: enpt.FloatArray
-  quads: enpt.IntArray
-  triangles: enpt.IntArray
-  quad_uvs: enpt.FloatArray
-  triangle_uvs: enpt.FloatArray
+  skinning_weights: enpt.FloatArray  # pyrefly: ignore[not-a-type]
+  quads: enpt.IntArray  # pyrefly: ignore[not-a-type]
+  triangles: enpt.IntArray  # pyrefly: ignore[not-a-type]
+  quad_uvs: enpt.FloatArray  # pyrefly: ignore[not-a-type]
+  triangle_uvs: enpt.FloatArray  # pyrefly: ignore[not-a-type]
   mesh_component_names: Sequence[str]
-  mirror_indices: enpt.IntArray
-  joint_regressor: enpt.FloatArray
-  pose_correctives_regressor: enpt.FloatArray
-  bone_aligned_template_joint_orientations: enpt.FloatArray
-  vertex_groups: enpt.FloatArray
+  mirror_indices: enpt.IntArray  # pyrefly: ignore[not-a-type]
+  joint_regressor: enpt.FloatArray  # pyrefly: ignore[not-a-type]
+  pose_correctives_regressor: enpt.FloatArray  # pyrefly: ignore[not-a-type]
+  bone_aligned_template_joint_orientations: (
+      enpt.FloatArray  # pyrefly: ignore[not-a-type]
+  )
+  vertex_groups: enpt.FloatArray  # pyrefly: ignore[not-a-type]
   vertex_group_names: Sequence[str]
 
   def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -143,7 +145,11 @@ class GNM(gnm_base.GNMBase):
     }
     self._xnp = enp.get_np_module(self.template_vertex_positions)
     self._landmarks: dict[
-        gnm_landmarks.GNMLandmarksType, tuple[enpt.IntArray, enpt.FloatArray]
+        gnm_landmarks.GNMLandmarksType,
+        tuple[
+            enpt.IntArray,  # pyrefly: ignore[not-a-type]
+            enpt.FloatArray,  # pyrefly: ignore[not-a-type]
+        ],
     ] = {}
 
   @property
@@ -218,7 +224,7 @@ class GNM(gnm_base.GNMBase):
       model_data: Mapping[str, Any],
       xnp: enp.NpModule,
   ) -> Self:
-    """Creates a GNM instance from a model data dictionary and array module."""    
+    """Creates a GNM instance from a model data dictionary and array module."""
     init_kwargs = cls._prepare_init_kwargs(model_data, xnp)
     # pylint: disable=no-value-for-parameter
     instance = super(GNM, cls).__new__(cls)
@@ -259,10 +265,18 @@ class GNM(gnm_base.GNMBase):
 
   def _check_parameter_shapes(
       self,
-      identity: enpt.FloatArray['...'] | None = None,
-      expression: enpt.FloatArray['...'] | None = None,
-      rotations: enpt.FloatArray['...'] | None = None,
-      translation: enpt.FloatArray['...'] | None = None,
+      identity: (
+          enpt.FloatArray['...'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
+      expression: (
+          enpt.FloatArray['...'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
+      rotations: (
+          enpt.FloatArray['...'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
+      translation: (
+          enpt.FloatArray['...'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
   ) -> None:
     error_type = self._shape_error_type
     if identity is not None:
@@ -297,11 +311,19 @@ class GNM(gnm_base.GNMBase):
   @enp.check_and_normalize_arrays(strict=False)
   def __call__(
       self,
-      identity: enpt.FloatArray['A1 ... An I'] | None = None,
-      expression: enpt.FloatArray['A1 ... An E'] | None = None,
-      rotations: enpt.FloatArray['A1 ... An J 3'] | None = None,
-      translation: enpt.FloatArray['A1 ... An 3'] | None = None,
-  ) -> enpt.FloatArray['A1 ... An V 3']:
+      identity: (
+          enpt.FloatArray['A1 ... An I'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
+      expression: (
+          enpt.FloatArray['A1 ... An E'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
+      rotations: (
+          enpt.FloatArray['A1 ... An J 3'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
+      translation: (
+          enpt.FloatArray['A1 ... An 3'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
+  ) -> enpt.FloatArray['A1 ... An V 3']:  # pyrefly: ignore[not-a-type]
     """Evaluates the GNM mesh-generating function."""
     self._check_parameter_shapes(identity, expression, rotations, translation)
     batch_shape = _check_batch_dims(
@@ -354,13 +376,21 @@ class GNM(gnm_base.GNMBase):
   def vertices_and_landmarks(
       self,
       landmarks_type: gnm_landmarks.GNMLandmarksType,
-      identity: enpt.FloatArray['A1 ... An I'] | None = None,
-      expression: enpt.FloatArray['A1 ... An E'] | None = None,
-      rotations: enpt.FloatArray['A1 ... An J 3'] | None = None,
-      translation: enpt.FloatArray['A1 ... An 3'] | None = None,
+      identity: (
+          enpt.FloatArray['A1 ... An I'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
+      expression: (
+          enpt.FloatArray['A1 ... An E'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
+      rotations: (
+          enpt.FloatArray['A1 ... An J 3'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
+      translation: (
+          enpt.FloatArray['A1 ... An 3'] | None  # pyrefly: ignore[not-a-type]
+      )=None,
   ) -> tuple[
-      enpt.FloatArray['A1 ... An V 3'],
-      enpt.FloatArray['A1 ... An L 3'],
+      enpt.FloatArray['A1 ... An V 3'],  # pyrefly: ignore[not-a-type]
+      enpt.FloatArray['A1 ... An L 3'],  # pyrefly: ignore[not-a-type]
   ]:
     """Evaluates the GNM mesh function and extracts 3D landmarks."""
     gnm_landmarks.check_body_part_compatibility(landmarks_type, self.body_part)
@@ -386,11 +416,17 @@ class GNM(gnm_base.GNMBase):
 
   def vertex_positions_world(
       self,
-      vertices: enpt.FloatArray['A1 ... An V 3'],
-      joints: enpt.FloatArray['A1 ... An J 3'],
-      rotations: enpt.FloatArray['A1 ... An J 3'],
-      translation: enpt.FloatArray['A1 ... An 3'],
-  ) -> enpt.FloatArray['A1 ... An V 3']:
+      vertices: (
+          enpt.FloatArray['A1 ... An V 3']  # pyrefly: ignore[not-a-type]
+      ),
+      joints: enpt.FloatArray['A1 ... An J 3'],  # pyrefly: ignore[not-a-type]
+      rotations: (
+          enpt.FloatArray['A1 ... An J 3']  # pyrefly: ignore[not-a-type]
+      ),
+      translation: (
+          enpt.FloatArray['A1 ... An 3']  # pyrefly: ignore[not-a-type]
+      ),
+  ) -> enpt.FloatArray['A1 ... An V 3']:  # pyrefly: ignore[not-a-type]
     """Applies linear blend skinning to GNM vertices."""
     return gnm_common.linear_blend_skinning(
         local_vertices=vertices,
@@ -470,7 +506,11 @@ class GNM(gnm_base.GNMBase):
     vertex_uvs[indices[last_indices]] = uvs[last_indices]
     return vertex_uvs
 
-  def add_vertex_group(self, name: str, value: enpt.FloatArray['V']) -> None:
+  def add_vertex_group(
+      self,
+      name: str,
+      value: enpt.FloatArray['V'],  # pyrefly: ignore[not-a-type, unknown-name]
+  ) -> None:
     """Adds a new vertex group.
 
     Args:
@@ -498,9 +538,9 @@ class GNM(gnm_base.GNMBase):
   @enp.check_and_normalize_arrays(strict=False)
   def vertex_positions_bind_pose(
       self,
-      identity: enpt.FloatArray['A1 ... An I'],
-      expression: enpt.FloatArray['A1 ... An E'],
-  ) -> enpt.FloatArray['A1 ... An V 3']:
+      identity: enpt.FloatArray['A1 ... An I'],  # pyrefly: ignore[not-a-type]
+      expression: enpt.FloatArray['A1 ... An E'],  # pyrefly: ignore[not-a-type]
+  ) -> enpt.FloatArray['A1 ... An V 3']:  # pyrefly: ignore[not-a-type]
     return gnm_common.vertex_positions_bind_pose(
         identity,
         expression,
@@ -511,8 +551,9 @@ class GNM(gnm_base.GNMBase):
 
   @enp.check_and_normalize_arrays(strict=False)
   def joint_positions_bind_pose(
-      self, identity: enpt.FloatArray['A1 ... An I']
-  ) -> enpt.FloatArray['A1 ... An J 3']:
+      self,
+      identity: enpt.FloatArray['A1 ... An I'],  # pyrefly: ignore[not-a-type]
+  ) -> enpt.FloatArray['A1 ... An J 3']:  # pyrefly: ignore[not-a-type]
     return gnm_common.joint_positions_bind_pose(
         identity,
         self.template_joint_positions,
@@ -521,8 +562,11 @@ class GNM(gnm_base.GNMBase):
 
   @enp.check_and_normalize_arrays(strict=False)
   def compute_pose_correctives(
-      self, rotations: enpt.FloatArray['A1 ... An J 3']
-  ) -> enpt.FloatArray['A1 ... An V 3']:
+      self,
+      rotations: (
+          enpt.FloatArray['A1 ... An J 3']  # pyrefly: ignore[not-a-type]
+      ),
+  ) -> enpt.FloatArray['A1 ... An V 3']:  # pyrefly: ignore[not-a-type]
     return gnm_common.compute_pose_correctives(
         rotations,
         self.pose_correctives_regressor,
@@ -534,10 +578,14 @@ class GNM(gnm_base.GNMBase):
   @enp.check_and_normalize_arrays(strict=False)
   def joint_transforms_world(
       self,
-      joints: enpt.FloatArray['A1 ... An J 3'],
-      rotations: enpt.FloatArray['A1 ... An J 3'],
-      translation: enpt.FloatArray['A1 ... An 3'],
-  ) -> enpt.FloatArray['A1 ... An J 4 4']:
+      joints: enpt.FloatArray['A1 ... An J 3'],  # pyrefly: ignore[not-a-type]
+      rotations: (
+          enpt.FloatArray['A1 ... An J 3']  # pyrefly: ignore[not-a-type]
+      ),
+      translation: (
+          enpt.FloatArray['A1 ... An 3']  # pyrefly: ignore[not-a-type]
+      ),
+  ) -> enpt.FloatArray['A1 ... An J 4 4']:  # pyrefly: ignore[not-a-type]
     return gnm_common.joint_transforms_world(
         joints, rotations, translation, self.joint_parent_indices
     )
@@ -545,10 +593,14 @@ class GNM(gnm_base.GNMBase):
   @enp.check_and_normalize_arrays(strict=False)
   def get_posed_joint_transforms(
       self,
-      identity: enpt.FloatArray['A1 ... An I'],
-      rotations: enpt.FloatArray['A1 ... An J 3'],
-      translation: enpt.FloatArray['A1 ... An 3'],
-  ) -> enpt.FloatArray['A1 ... An J 4 4']:
+      identity: enpt.FloatArray['A1 ... An I'],  # pyrefly: ignore[not-a-type]
+      rotations: (
+          enpt.FloatArray['A1 ... An J 3']  # pyrefly: ignore[not-a-type]
+      ),
+      translation: (
+          enpt.FloatArray['A1 ... An 3']  # pyrefly: ignore[not-a-type]
+      ),
+  ) -> enpt.FloatArray['A1 ... An J 4 4']:  # pyrefly: ignore[not-a-type]
     self._check_parameter_shapes(
         identity=identity, rotations=rotations, translation=translation
     )
@@ -571,7 +623,7 @@ class GNM(gnm_base.GNMBase):
 
   def vertex_group_mask(
       self, *names: str, threshold: float = _NONZERO_THRESHOLD
-  ) -> npt.NDArray[bool]:
+  ) -> npt.NDArray[bool]:  # pyrefly: ignore[bad-specialization]
     result_mask = np.zeros(self.num_vertices, dtype=bool)
     for name in names:
       operator, inverse = '|', False
@@ -622,14 +674,20 @@ class GNM(gnm_base.GNMBase):
     return self.vertex_uvs[self.vertex_group_indices(*names)]
 
   def compute_vertex_normals(
-      self, vertices: enpt.FloatArray['A1 ... An V 3']
-  ) -> enpt.FloatArray['A1 ... An V 3']:
+      self,
+      vertices: enpt.FloatArray['A1 ... An V 3'],  # pyrefly: ignore[not-a-type]
+  ) -> enpt.FloatArray['A1 ... An V 3']:  # pyrefly: ignore[not-a-type]
     """Computes vertex normals. Must be overridden by subclasses."""
     raise NotImplementedError(
         'Subclasses must implement compute_vertex_normals.'
     )
 
-  def prune_vertices(self, keep_vertices: enpt.IntArray['V_pruned']) -> None:
+  def prune_vertices(
+      self,
+      keep_vertices: enpt.IntArray[  # pyrefly: ignore[not-a-type]
+          'V_pruned'  # pyrefly: ignore[unknown-name]
+      ],
+  ) -> None:
     """Prunes model vertices in-place."""
     xnp = self.xnp
     num_vertices = self.num_vertices
@@ -679,10 +737,18 @@ class GNM(gnm_base.GNMBase):
 
 
 def _check_batch_dims(
-    identity: enpt.FloatArray['... I'] | None = None,
-    expression: enpt.FloatArray['... E'] | None = None,
-    rotations: enpt.FloatArray['... J 3'] | None = None,
-    translation: enpt.FloatArray['... 3'] | None = None,
+    identity: (
+        enpt.FloatArray['... I'] | None  # pyrefly: ignore[not-a-type]
+    )=None,
+    expression: (
+        enpt.FloatArray['... E'] | None  # pyrefly: ignore[not-a-type]
+    )=None,
+    rotations: (
+        enpt.FloatArray['... J 3'] | None  # pyrefly: ignore[not-a-type]
+    )=None,
+    translation: (
+        enpt.FloatArray['... 3'] | None  # pyrefly: ignore[not-a-type]
+    )=None,
 ) -> tuple[int, ...]:
   """Ensures that the leading batch dimensions of all inputs are the same."""
   shapes = {}
