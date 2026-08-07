@@ -17,8 +17,8 @@ community research and open development, we are beginning our open-source
 release with **GNM Head**, our high-fidelity statistical 3D model of the human
 head.
 
-The ecosystem is released under a permissive license suitable for both
-non-commercial and commercial applications.
+The ecosystem is released under the Apache 2.0 permissive license suitable for
+both non-commercial and commercial applications.
 
 ## News
 
