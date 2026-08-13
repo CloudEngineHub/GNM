@@ -75,7 +75,10 @@ def regularized_least_squares(
       [right_hand_side_data_term, right_hand_side_regularization_term]
   )
 
-  return np.linalg.lstsq(left_hand_side, right_hand_side, rcond)
+  x, residuals, rank, s = np.linalg.lstsq(
+      left_hand_side, right_hand_side, rcond
+  )
+  return x, residuals, int(rank), s
 
 
 class RegularizedLeastSquares:
