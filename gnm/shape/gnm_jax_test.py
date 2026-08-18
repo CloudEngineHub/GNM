@@ -21,7 +21,7 @@ from absl.testing import parameterized
 from gnm.shape import gnm_data_schema
 from gnm.shape import gnm_jax
 from gnm.shape import gnm_numpy
-from gnm.shape.data.versions import gnm_catalog
+from gnm.shape.data.versions import gnm_test_catalog
 import jax
 import jax.numpy as jnp
 import jaxtyping as jt
@@ -31,8 +31,8 @@ _SUPPORTED_VARIANTS = frozenset([
     gnm_jax.GNMVariant.HEAD,
 ])
 
-_MAINTAINED_MAJOR_GNM_VERSIONS = gnm_catalog.MAINTAINED_MAJOR_VERSIONS
-_MAJOR_VERSION_TO_VARIANTS_MAP = gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP
+_MAINTAINED_MAJOR_GNM_VERSIONS = gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+_MAJOR_VERSION_TO_VARIANTS_MAP = gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP
 
 
 DTYPES = (
@@ -467,10 +467,10 @@ class GNMJaxFactoryMethodsTest(parameterized.TestCase):
 
   @parameterized.product(
       variant=tuple(_SUPPORTED_VARIANTS),
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
   )
   def test_from_local_successful(self, variant, version):
-    if variant.value in gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[version]:
+    if variant.value in gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[version]:
       major_version = gnm_jax.GNMMajorVersion(version[1:])
 
       model = gnm_jax.GNM.from_local(major_version, variant)

@@ -24,7 +24,7 @@ from absl.testing import parameterized
 import cv2
 from etils import epath
 from gnm.shape import gnm_numpy
-from gnm.shape.data.versions import gnm_catalog
+from gnm.shape.data.versions import gnm_test_catalog
 from gnm.shape.visualization import camera_conversions
 from gnm.shape.visualization import render_gnm
 from gnm.shape.visualization import vertex_colors as vertex_colors_module
@@ -93,7 +93,7 @@ class RenderGNMTest(parameterized.TestCase):
   def setUpClass(cls):
     super().setUpClass()
     cls.gnms = {}
-    for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS:
+    for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS:
       cls.gnms[version] = gnm_numpy.GNM.from_local(
           gnm_numpy.GNMMajorVersion(version.removeprefix('v')),
           gnm_numpy.GNMVariant.HEAD,
@@ -114,9 +114,10 @@ class RenderGNMTest(parameterized.TestCase):
         'image_size': image_size,
     }
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_no_args(self, version):
     """Tests we can render without any parameters."""
     gnm_np = self.gnms[version]
@@ -133,7 +134,7 @@ class RenderGNMTest(parameterized.TestCase):
     )
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       spin_period=[5, 30],
   )
   def test_spin_period(self, version, spin_period: int):
@@ -161,9 +162,10 @@ class RenderGNMTest(parameterized.TestCase):
         fps=spin_period,
     )
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_spin_period_with_time_dimension(self, version):
     gnm_np = self.gnms[version]
 
@@ -192,9 +194,10 @@ class RenderGNMTest(parameterized.TestCase):
         fps=2,
     )
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_msaa(self, version):
     """Tests we can render with MSAA."""
     gnm_np = self.gnms[version]
@@ -207,9 +210,10 @@ class RenderGNMTest(parameterized.TestCase):
     images = np.hstack([default_render, msaa_render])
     _write_images(self.outputs_dir, f'msaa_{version}', images)
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_multi_gnm_image(self, version):
     """Tests we can render multiple GNMs per frame."""
     gnm_np = self.gnms[version]
@@ -245,9 +249,10 @@ class RenderGNMTest(parameterized.TestCase):
 
     _write_images(self.outputs_dir, 'multi_gnm_image', renders)
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_error_raised_if_multiple_gnms_and_no_batch_dims(self, version):
     """Tests error if rendering multiple GNMs without batch dimension."""
     gnm_np = self.gnms[version]
@@ -256,9 +261,10 @@ class RenderGNMTest(parameterized.TestCase):
     ):
       render_gnm.render_gnm(gnm_np, multiple_gnms=True, **self.rendering_kwargs)
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_background_color(self, version):
     """Tests we can render with a background color."""
     gnm_np = self.gnms[version]
@@ -270,9 +276,10 @@ class RenderGNMTest(parameterized.TestCase):
     )
     _write_images(self.outputs_dir, f'green_background_{version}', renders)
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_alpha(self, version):
     """Tests we can render with alpha."""
     gnm_np = self.gnms[version]
@@ -284,7 +291,7 @@ class RenderGNMTest(parameterized.TestCase):
     _write_images(self.outputs_dir, f'alpha_{version}', images)
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       batch_dims=[(), (5,)],
       dtype=[np.float32, np.uint8],
   )
@@ -320,9 +327,10 @@ class RenderGNMTest(parameterized.TestCase):
         self.outputs_dir, f'background_image_{batch_dims}_{dtype_name}', renders
     )
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_no_shading(self, version):
     """Tests we can render without shading."""
     gnm_np = self.gnms[version]
@@ -333,9 +341,10 @@ class RenderGNMTest(parameterized.TestCase):
     renders = np.hstack([render_with_shading, render_without_shading])
     _write_images(self.outputs_dir, f'no_shading_{version}', renders)
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_batch_vertex_colors(self, version):
     """Tests we can render with per-sample vertex colors in a batch."""
     gnm_np = self.gnms[version]
@@ -367,9 +376,10 @@ class RenderGNMTest(parameterized.TestCase):
 
     _write_images(self.outputs_dir, 'batch_vertex_colors', renders)
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_batch_vertex_colors_with_multiple_gnms(self, version):
     """Tests we can render multiple GNMs per frame with different colors."""
     gnm_np = self.gnms[version]
@@ -414,9 +424,10 @@ class RenderGNMTest(parameterized.TestCase):
         self.outputs_dir, f'batch_vertex_colors_multi_gnm_{version}', renders
     )
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_no_texture(self, version):
     """Tests we can render without texture."""
     gnm_np = self.gnms[version]
@@ -433,9 +444,10 @@ class RenderGNMTest(parameterized.TestCase):
     renders = np.hstack([render_with_texture, render_without_texture])
     _write_images(self.outputs_dir, f'no_texture_{version}', renders)
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_custom_texture(self, version):
     """Tests we can render with a custom per-sample texture."""
     gnm_np = self.gnms[version]
@@ -448,9 +460,10 @@ class RenderGNMTest(parameterized.TestCase):
     )
     _write_images(self.outputs_dir, f'custom_texture_{version}', renders)
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_per_part_texture(self, version):
     """Tests we can render with a per-part texture."""
     gnm_np = self.gnms[version]
@@ -473,10 +486,7 @@ class RenderGNMTest(parameterized.TestCase):
     )
 
     eye_indices = gnm_np.vertex_group_indices('eye_interiors')
-    proj_fn = (
-        render_gnm.project_points_for_gnm  # pytype: disable=module-attr
-    )
-    eye_image_points = proj_fn(
+    eye_image_points = render_gnm.project_points_for_gnm(
         points_world=vertices[eye_indices],
         vertices=vertices,
         gnm_np=gnm_np,
@@ -500,9 +510,10 @@ class RenderGNMTest(parameterized.TestCase):
     cv2.rectangle(renders, (xmin, ymin), (xmax, ymax), (1.0, 1.0, 1.0), 1)
     _write_images(self.outputs_dir, f'per_part_texture_{version}', renders)
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_incorrect_texture_part_name_raises_error(self, version):
     """Tests error if texture part name is not a GNM part name."""
     gnm_np = self.gnms[version]
@@ -526,7 +537,7 @@ class RenderGNMBatchTest(parameterized.TestCase):
   def setUpClass(cls):
     super().setUpClass()
     cls.gnms = {}
-    for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS:
+    for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS:
       cls.gnms[version] = gnm_numpy.GNM.from_local(
           gnm_numpy.GNMMajorVersion(version.removeprefix('v')),
           gnm_numpy.GNMVariant.HEAD,
@@ -558,7 +569,7 @@ class RenderGNMBatchTest(parameterized.TestCase):
     }
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       batch_dims=list(BATCH_DIMS),
       multiple_gnms=[False, True],
   )
@@ -582,7 +593,7 @@ class RenderGNMBatchTest(parameterized.TestCase):
     self.assertEqual(image.shape, (*batch_dims, *self.image_dims))
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       batch_dims=list(BATCH_DIMS),
       multiple_gnms=[False, True],
   )
@@ -607,7 +618,7 @@ class RenderGNMBatchTest(parameterized.TestCase):
     self.assertEqual(image.shape, (*batch_dims, *self.image_dims))
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       batch_dims=list(BATCH_DIMS),
   )
   def test_batch_world_to_camera(self, version, batch_dims: _TupleOfInts):
@@ -620,7 +631,7 @@ class RenderGNMBatchTest(parameterized.TestCase):
     self.assertEqual(image.shape, (*batch_dims, *self.image_dims))
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       batch_dims=list(BATCH_DIMS),
   )
   def test_batch_camera_to_image(self, version, batch_dims: _TupleOfInts):
@@ -633,7 +644,7 @@ class RenderGNMBatchTest(parameterized.TestCase):
     self.assertEqual(image.shape, (*batch_dims, *self.image_dims))
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       batch_dims=list(BATCH_DIMS),
   )
   def test_batch_background_image(self, version, batch_dims: _TupleOfInts):
@@ -648,7 +659,7 @@ class RenderGNMBatchTest(parameterized.TestCase):
     self.assertEqual(image.shape, (*batch_dims, *self.image_dims))
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       batch_dims=list(BATCH_DIMS),
   )
   def test_batch_texture(self, version, batch_dims: _TupleOfInts):
@@ -660,9 +671,10 @@ class RenderGNMBatchTest(parameterized.TestCase):
     )
     self.assertEqual(image.shape, (*batch_dims, *self.image_dims))
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_error_on_batch_mismatch(self, version):
     """Tests error if batch dimensions don't match."""
     gnm_np = self.gnms[version]
@@ -707,7 +719,7 @@ class TestProjectPointsForGNM(parameterized.TestCase):
   def setUpClass(cls):
     super().setUpClass()
     cls.gnms = {}
-    for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS:
+    for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS:
       cls.gnms[version] = gnm_numpy.GNM.from_local(
           gnm_numpy.GNMMajorVersion(version.removeprefix('v')),
           gnm_numpy.GNMVariant.HEAD,
@@ -729,9 +741,10 @@ class TestProjectPointsForGNM(parameterized.TestCase):
         'background_color': 0.0,  # So we can easily calculate mask.
     }
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_project_points_default_render(self, version):
     """Tests project_points_for_gnm with default render."""
     gnm_np = self.gnms[version]
@@ -740,10 +753,7 @@ class TestProjectPointsForGNM(parameterized.TestCase):
     image = render_gnm.render_gnm(gnm_np, **self.rendering_kwargs)
 
     # Project face joints under the same camera setup.
-    proj_fn = (
-        render_gnm.project_points_for_gnm  # pytype: disable=module-attr
-    )
-    joints_image = proj_fn(
+    joints_image = render_gnm.project_points_for_gnm(
         gnm_np=gnm_np,
         points_world=gnm_np.template_joint_positions,
         **self.rendering_kwargs,
@@ -753,10 +763,7 @@ class TestProjectPointsForGNM(parameterized.TestCase):
     points_world = np.array(
         [[0, gnm_np.template_vertex_positions[:, 1].max() + 0.05, 0]]
     )
-    proj_fn = (
-        render_gnm.project_points_for_gnm  # pytype: disable=module-attr
-    )
-    external_point_image = proj_fn(
+    external_point_image = render_gnm.project_points_for_gnm(
         gnm_np=gnm_np,
         points_world=points_world,
         **self.rendering_kwargs,
@@ -781,9 +788,10 @@ class TestProjectPointsForGNM(parameterized.TestCase):
 
     _write_images(self.outputs_dir, 'project_points', image[None, :])
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_project_points_spin(self, version):
     """Tests projection of points for GNM in a spin."""
     gnm_np = self.gnms[version]
@@ -799,10 +807,7 @@ class TestProjectPointsForGNM(parameterized.TestCase):
     )
 
     # Project face joints under the same camera setup.
-    proj_fn = (
-        render_gnm.project_points_for_gnm  # pytype: disable=module-attr
-    )
-    joints_image = proj_fn(
+    joints_image = render_gnm.project_points_for_gnm(
         gnm_np=gnm_np,
         points_world=gnm_np.template_joint_positions,
         world_to_camera=world_to_camera,
@@ -821,9 +826,7 @@ class TestProjectPointsForGNM(parameterized.TestCase):
         x = joints_image[..., 0].astype(np.int32)
         y = joints_image[..., 1].astype(np.int32)
         for i in range(spin_period):
-          is_in_mask = (
-              mask[i, y[i], x[i]].all()  # pyrefly: ignore[bad-index]
-          )
+          is_in_mask = mask[i, y[i], x[i]].all()  # pyrefly: ignore[bad-index]
           self.assertTrue(is_in_mask)
 
     # Draw points on the image and save.
@@ -846,15 +849,16 @@ class TestGetLookAtWorldToCamera(parameterized.TestCase):
   def setUpClass(cls):
     super().setUpClass()
     cls.gnms = {}
-    for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS:
+    for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS:
       cls.gnms[version] = gnm_numpy.GNM.from_local(
           gnm_numpy.GNMMajorVersion(version.removeprefix('v')),
           gnm_numpy.GNMVariant.HEAD,
       )
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_basic(self, version):
     gnm_np = self.gnms[version]
     vertices = gnm_np.template_vertex_positions
@@ -881,9 +885,10 @@ class TestGetLookAtWorldToCamera(parameterized.TestCase):
           delta=0.01,
       )
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_share_camera_no_batch(self, version):
     gnm_np = self.gnms[version]
     parameters = _get_random_parameters((), gnm_np)
@@ -902,9 +907,10 @@ class TestGetLookAtWorldToCamera(parameterized.TestCase):
 
     np.testing.assert_allclose(world_to_camera_no_share, world_to_camera_share)
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_share_camera(self, version):
     gnm_np = self.gnms[version]
     parameters = _get_random_parameters((10,), gnm_np)
@@ -952,15 +958,16 @@ class TestGetFillFactorCameraToImage(parameterized.TestCase):
   def setUpClass(cls):
     super().setUpClass()
     cls.gnms = {}
-    for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS:
+    for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS:
       cls.gnms[version] = gnm_numpy.GNM.from_local(
           gnm_numpy.GNMMajorVersion(version.removeprefix('v')),
           gnm_numpy.GNMVariant.HEAD,
       )
 
-  @parameterized.named_parameters(
-      *[(version, version) for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS]
-  )
+  @parameterized.named_parameters(*[
+      (version, version)
+      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+  ])
   def test_basic(self, version):
     gnm_np = self.gnms[version]
     vertices = gnm_np.template_vertex_positions

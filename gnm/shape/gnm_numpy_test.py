@@ -26,9 +26,10 @@ from absl.testing import parameterized
 from gnm.shape import gnm_data_schema
 from gnm.shape import gnm_numpy
 from gnm.shape import gnm_utils
-from gnm.shape.data.versions import gnm_catalog
+from gnm.shape.data.versions import gnm_test_catalog
 import numpy as np
 from scipy.spatial import transform as transform_module
+
 try:
   from tensorflow_graphics.geometry.representation.mesh import normals as tf_normals
 except ImportError:
@@ -45,8 +46,8 @@ _Rotation = transform_module.Rotation
 _INVALID_SUFFIXES = []
 
 
-_MAINTAINED_MAJOR_GNM_VERSIONS = gnm_catalog.MAINTAINED_MAJOR_VERSIONS
-_MAJOR_VERSION_TO_VARIANTS_MAP = gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP
+_MAINTAINED_MAJOR_GNM_VERSIONS = gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+_MAJOR_VERSION_TO_VARIANTS_MAP = gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP
 
 
 def transform_points(transform: np.ndarray, points: np.ndarray) -> np.ndarray:

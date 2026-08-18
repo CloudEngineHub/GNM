@@ -20,11 +20,11 @@ from absl.testing import absltest
 from absl.testing import parameterized
 from etils import epath
 from gnm.shape import gnm_data_loader
-from gnm.shape.data.versions import gnm_catalog
 from gnm.shape.data.versions import gnm_specs
+from gnm.shape.data.versions import gnm_test_catalog
 
-_MAINTAINED_MAJOR_GNM_VERSIONS = gnm_catalog.MAINTAINED_MAJOR_VERSIONS
-_MAJOR_VERSION_TO_VARIANTS_MAP = gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP
+_MAINTAINED_MAJOR_GNM_VERSIONS = gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+_MAJOR_VERSION_TO_VARIANTS_MAP = gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP
 
 
 class GNMDataTest(parameterized.TestCase):
@@ -47,7 +47,7 @@ class GNMModelLoadingTest(parameterized.TestCase):
 
   @parameterized.product(
       version=_MAINTAINED_MAJOR_GNM_VERSIONS,
-      variant=gnm_catalog.ALL_VARIANTS,
+      variant=gnm_test_catalog.ALL_VARIANTS,
   )
   def test_load_model_from_runfile_successful(self, version, variant):
     if variant in _MAJOR_VERSION_TO_VARIANTS_MAP[version]:
@@ -55,9 +55,7 @@ class GNMModelLoadingTest(parameterized.TestCase):
       major_version = gnm_specs.GNMMajorVersion(version[1:])
       gnm_variant = gnm_specs.GNMVariant(variant)
 
-      data = gnm_data_loader.load_model_from_runfile(
-          major_version, gnm_variant
-      )
+      data = gnm_data_loader.load_model_from_runfile(major_version, gnm_variant)
       self.assertIsInstance(data, dict)
     else:
       self.skipTest(f'Variant {variant} not available in version {version}')

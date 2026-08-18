@@ -22,16 +22,16 @@ from typing import Any
 from absl.testing import absltest
 from gnm.shape import gnm_base
 from gnm.shape import gnm_data_loader
-from gnm.shape.data.versions import gnm_catalog
 from gnm.shape.data.versions import gnm_specs
+from gnm.shape.data.versions import gnm_test_catalog
 
-_TEST_MAJOR_VERSION_STR = gnm_catalog.MAINTAINED_MAJOR_VERSIONS[0]
+_TEST_MAJOR_VERSION_STR = gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS[0]
 _TEST_MAJOR_VERSION = gnm_specs.GNMMajorVersion(_TEST_MAJOR_VERSION_STR[1:])
 _TEST_FULL_VERSION = gnm_data_loader.major_to_newest_full_version(
     _TEST_MAJOR_VERSION
 )
 _TEST_VARIANT = gnm_specs.GNMVariant(
-    gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[_TEST_MAJOR_VERSION_STR][0]
+    gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[_TEST_MAJOR_VERSION_STR][0]
 )
 _TEST_BODY_PART = gnm_specs.GNMBodyPart(
     gnm_specs.GNM_VARIANT_TO_BODY_PART_MAP[_TEST_VARIANT]
@@ -82,6 +82,7 @@ class GNMBaseTest(absltest.TestCase):
     self.assertIsInstance(new_gnm, DummyGNM)
     self.assertEqual(new_gnm.version, _TEST_FULL_VERSION)
     self.assertEqual(new_gnm.variant, _TEST_VARIANT)
+
 
 if __name__ == "__main__":
   absltest.main()

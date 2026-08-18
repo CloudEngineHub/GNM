@@ -21,13 +21,13 @@ from absl.testing import absltest
 from absl.testing import parameterized
 from etils import epath
 from gnm.shape import gnm_numpy
-from gnm.shape.data.versions import gnm_catalog
+from gnm.shape.data.versions import gnm_test_catalog
 from gnm.shape.visualization import gnm_pyrender
 import mediapy as media
 import numpy as np
 
-_MAINTAINED_MAJOR_GNM_VERSIONS = gnm_catalog.MAINTAINED_MAJOR_VERSIONS
-_MAJOR_VERSION_TO_VARIANTS_MAP = gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP
+_MAINTAINED_MAJOR_GNM_VERSIONS = gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
+_MAJOR_VERSION_TO_VARIANTS_MAP = gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP
 
 _OUTPUTS_DIR = epath.Path(os.environ['TEST_UNDECLARED_OUTPUTS_DIR'])
 

@@ -20,7 +20,7 @@ from absl.testing import absltest
 from absl.testing import parameterized
 from gnm.shape import gnm_numpy
 from gnm.shape import gnm_utils
-from gnm.shape.data.versions import gnm_catalog
+from gnm.shape.data.versions import gnm_test_catalog
 from gnm.shape.fitting_utils import project_on_pca
 import numpy as np
 
@@ -38,10 +38,10 @@ class ProjectOnPcaTest(parameterized.TestCase):
     cls.rng = np.random.default_rng(0)
 
     cls.gnms = {}
-    for version in gnm_catalog.MAINTAINED_MAJOR_VERSIONS:
+    for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS:
       if (
           gnm_numpy.GNMVariant.HEAD
-          in gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[version]
+          in gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[version]
       ):
         cls.gnms[version] = gnm_numpy.GNM.from_local(
             gnm_numpy.GNMMajorVersion(version.removeprefix('v')),
@@ -49,7 +49,7 @@ class ProjectOnPcaTest(parameterized.TestCase):
         )
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       index=[0, 2, 4],
       value=[1.0],
   )
@@ -72,7 +72,7 @@ class ProjectOnPcaTest(parameterized.TestCase):
     np.testing.assert_allclose(estimated_identity, identity, atol=1.0e-06)
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       index=[0, 2, 4],
       value=[1.0],
   )
@@ -95,7 +95,7 @@ class ProjectOnPcaTest(parameterized.TestCase):
     np.testing.assert_allclose(estimated_expression, expression, atol=1.0e-06)
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       num_components_and_threshold=[(10, 2.0), (100, 1.0)],
   )
   def test_can_fit_identity_using_subset_of_basis(
@@ -104,7 +104,7 @@ class ProjectOnPcaTest(parameterized.TestCase):
     """Tests that we can estimate identity using a subset of the basis."""
     if (
         gnm_numpy.GNMVariant.HEAD
-        not in gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[version]
+        not in gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[version]
     ):
       self.skipTest(f'Head variant not available in version {version}')
 
@@ -135,7 +135,7 @@ class ProjectOnPcaTest(parameterized.TestCase):
     self.assertLess(mesh_error, threshold)
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       batch_size_num_components_threshold=[
           (1, 10, 2.0),
           (2, 10, 2.0),
@@ -151,7 +151,7 @@ class ProjectOnPcaTest(parameterized.TestCase):
     """Tests that the projection object can estimate identity ."""
     if (
         gnm_numpy.GNMVariant.HEAD
-        not in gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[version]
+        not in gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[version]
     ):
       self.skipTest(f'Head variant not available in version {version}')
 
@@ -190,7 +190,7 @@ class ProjectOnPcaTest(parameterized.TestCase):
     self.assertLess(mesh_error, threshold)
 
   @parameterized.product(
-      version=gnm_catalog.MAINTAINED_MAJOR_VERSIONS,
+      version=gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS,
       batch_size_num_components_threshold=[
           (1, 10, 2.0),
           (2, 10, 2.0),
@@ -206,7 +206,7 @@ class ProjectOnPcaTest(parameterized.TestCase):
     """Tests that the projection object can estimate expression."""
     if (
         gnm_numpy.GNMVariant.HEAD
-        not in gnm_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[version]
+        not in gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP[version]
     ):
       self.skipTest(f'Head variant not available in version {version}')
 

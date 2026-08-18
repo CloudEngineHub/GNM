@@ -22,13 +22,15 @@ from typing import Any
 from absl import logging
 from etils import epath
 from gnm.shape import gnm_data_schema
-from gnm.shape.data.versions import gnm_catalog
+from gnm.shape.data.versions import gnm_models_catalog
 from gnm.shape.data.versions import gnm_specs
 import numpy as np
 
 _pkg = __package__ or 'gnm.shape'
 _MODELS_VERSIONS_DIR = epath.resource_path(f'{_pkg}.data.versions')
-_VARIANT_TO_MODEL_FILE_NAME_MAP = gnm_catalog.VARIANT_TO_MODEL_FILE_NAME_MAP
+_VARIANT_TO_MODEL_FILE_NAME_MAP = (
+    gnm_models_catalog.VARIANT_TO_MODEL_FILE_NAME_MAP
+)
 
 
 class GNMModelDataNotLinkedError(Exception):
