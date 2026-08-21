@@ -271,20 +271,23 @@ class GNM(gnm_base.GNMBase):
   ) -> None:
     error_type = self._shape_error_type
     if identity is not None:
-      if identity.ndim < 1 or identity.shape[-1] != self.identity_dim:
+      if len(identity.shape) < 1 or identity.shape[-1] != self.identity_dim:
         raise error_type(
             f'identity shape mismatch: expected last dim {self.identity_dim},'
             f' got {identity.shape}'
         )
     if expression is not None:
-      if expression.ndim < 1 or expression.shape[-1] != self.expression_dim:
+      if (
+          len(expression.shape) < 1
+          or expression.shape[-1] != self.expression_dim
+      ):
         raise error_type(
             'expression shape mismatch: expected last dim'
             f' {self.expression_dim}, got {expression.shape}'
         )
     if rotations is not None:
       if (
-          rotations.ndim < 2
+          len(rotations.shape) < 2
           or rotations.shape[-2] != self.num_joints
           or rotations.shape[-1] != 3
       ):
@@ -293,7 +296,7 @@ class GNM(gnm_base.GNMBase):
             f' {(self.num_joints, 3)}, got {rotations.shape}'
         )
     if translation is not None:
-      if translation.ndim < 1 or translation.shape[-1] != 3:
+      if len(translation.shape) < 1 or translation.shape[-1] != 3:
         raise error_type(
             'translation shape mismatch: expected last dim 3, got'
             f' {translation.shape}'
@@ -582,7 +585,7 @@ class GNM(gnm_base.GNMBase):
 
   def vertex_group_mask(
       self, *names: str, threshold: float = _NONZERO_THRESHOLD
-  ) -> npt.NDArray[bool]:  # pyrefly: ignore[bad-specialization]
+  ) -> npt.NDArray[np.bool_]:
     result_mask = np.zeros(self.num_vertices, dtype=bool)
     for name in names:
       operator, inverse = '|', False
@@ -607,15 +610,17 @@ class GNM(gnm_base.GNMBase):
   ) -> npt.NDArray[np.integer]:
     return np.where(self.vertex_group_mask(*names, threshold=threshold))[0]
 
-  def quad_indices_for_group(self, *names: str) -> npt.NDArray[np.integer]:
-    vertex_indices = self.vertex_group_indices(*names)
-    quads = np.array(self.quads)
-    return np.where(np.all(np.isin(quads, vertex_indices), axis=-1))[0]
+  def quad_indices_for_group(
+      self, *names: str, threshold: float = _NONZERO_THRESHOLD
+  ) -> npt.NDArray[np.integer]:
+    mask = self.vertex_group_mask(*names, threshold=threshold)
+    return np.where(np.all(mask[self.quads], axis=-1))[0]
 
-  def triangle_indices_for_group(self, *names: str) -> npt.NDArray[np.integer]:
-    vertex_indices = self.vertex_group_indices(*names)
-    triangles = np.array(self.triangles)
-    return np.where(np.all(np.isin(triangles, vertex_indices), axis=-1))[0]
+  def triangle_indices_for_group(
+      self, *names: str, threshold: float = _NONZERO_THRESHOLD
+  ) -> npt.NDArray[np.integer]:
+    mask = self.vertex_group_mask(*names, threshold=threshold)
+    return np.where(np.all(mask[self.triangles], axis=-1))[0]
 
   def quads_group(self, *names: str) -> npt.NDArray[np.integer]:
     return np.array(self.quads)[self.quad_indices_for_group(*names)]

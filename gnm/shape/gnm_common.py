@@ -81,6 +81,9 @@ def eye(
   """
   if xnp is None:
     xnp = enp.lazy.get_xnp(reference_array)
+  # tf.experimental.numpy requires a NumPy dtype and rejects tf.dtypes.DType.
+  if hasattr(dtype, 'as_numpy_dtype'):
+    dtype = dtype.as_numpy_dtype
   if enp.lazy.is_torch(reference_array):
     return xnp.eye(size, dtype=dtype, device=reference_array.device)
   else:
@@ -150,6 +153,9 @@ def zeros_with_batch_dims(
 
   shape = _graph_shape(reference_array)
   batch_shape = shape[:-num_reference_non_batch_dims]
+  # tf.experimental.numpy requires a NumPy dtype and rejects tf.dtypes.DType.
+  if hasattr(dtype, 'as_numpy_dtype'):
+    dtype = dtype.as_numpy_dtype
   array_kwargs = dict(dtype=dtype)
 
   if enp.lazy.is_tf_xnp(xnp):
@@ -192,10 +198,19 @@ def axis_angle_to_rotation_matrix(
   sin_angle, cos_angle = xnp.sin(angle), xnp.cos(angle)
   sin_angle, cos_angle = sin_angle[..., None], cos_angle[..., None]
 
-  matrix = xnp.broadcast_to(
-      eye(3, dtype=angle.dtype, reference_array=axis_angle, xnp=xnp),
-      (*axis_angle.shape[:-1], 3, 3),
-  )
+  eye_matrix = eye(3, dtype=angle.dtype, reference_array=axis_angle, xnp=xnp)
+  if enp.lazy.is_tf(axis_angle):
+    matrix = enp.lazy.tf.broadcast_to(
+        eye_matrix,
+        enp.lazy.tf.concat(
+            [enp.lazy.tf.shape(axis_angle)[:-1], [3, 3]], axis=0
+        ),
+    )
+  else:
+    matrix = xnp.broadcast_to(
+        eye_matrix,
+        (*axis_angle.shape[:-1], 3, 3),
+    )
 
   skew_01 = -axis[..., 2]
   skew_02 = axis[..., 1]
@@ -328,51 +343,30 @@ def linear_blend_skinning(
     The posed skinned vertices with shape `(..., V, 3)`.
   """
   xnp = enp.get_np_module(local_vertices)
-  num_joints = skinning_weights.shape[0]
 
-  # The local-to-world transforms of each joint, after posing, (N, J, 4, 4).
+  # The local-to-world transforms of each joint, after posing, (..., J, 4, 4).
   joint_transforms_world_local = joint_transforms_world(
       joint_positions, rotations, translation, joint_parent_indices
   )
 
-  # deltas = T_world[..., :3, :3] @ joints
-  deltas = xnp.einsum(
-      '...jik,...jk->...ji',
-      joint_transforms_world_local[..., :3, :3],
-      joint_positions,
-  )
-  deltas = deltas[..., None]  # (..., J, 3, 1)
+  # Extract 3x3 rotation and translation from joint transforms.
+  r_world = joint_transforms_world_local[..., :3, :3]
+  t_world = joint_transforms_world_local[..., :3, 3]
 
-  offset_3x3 = zeros_with_batch_dims(
-      local_vertices, 2, (num_joints, 3, 3), dtype=local_vertices.dtype
-  )
-  bottom_row = zeros_with_batch_dims(
-      local_vertices, 2, (num_joints, 1, 4), dtype=local_vertices.dtype
+  # Compute bind-to-world translation: T_bind = T_world - R_world @ joints
+  deltas = (r_world @ joint_positions[..., :, None])[..., 0]
+  t_bind_to_world = t_world - deltas
+
+  # Compute per-vertex 3x3 rotations and 3D translations via skinning weights.
+  per_vertex_r = xnp.einsum('jv,...jmn->...vmn', skinning_weights, r_world)
+  per_vertex_t = xnp.einsum(
+      'jv,...jm->...vm', skinning_weights, t_bind_to_world
   )
 
-  offset = xnp.concatenate([offset_3x3, deltas], axis=-1)
-  offset = xnp.concatenate([offset, bottom_row], axis=-2)
-  joint_transforms = joint_transforms_world_local - offset
-
-  # Convert the vertices to homogeneous coordinates.
-  ones = (
-      zeros_with_batch_dims(
-          local_vertices,
-          2,
-          (local_vertices.shape[-2], 1),
-          dtype=local_vertices.dtype,
-      )
-      + 1.0
-  )
-  vertices_h = xnp.concatenate([local_vertices, ones], axis=-1)
-
-  # Perform Linear Blend Skinning.
-  vertices_skinned = xnp.einsum(
-      'jv,...jmn,...vn->...vm',
-      skinning_weights,
-      joint_transforms,
-      vertices_h,
-  )[..., :3]
+  # Apply affine transform: V_skinned = R_v @ V_local + T_v
+  vertices_skinned = (per_vertex_r @ local_vertices[..., :, None])[
+      ..., 0
+  ] + per_vertex_t
 
   return vertices_skinned
 
@@ -474,7 +468,7 @@ def compute_pose_correctives(
 
   if pose_correctives_regressor is None or rotations is None:
     return zeros_with_batch_dims(
-        template_vertex_positions,
+        rotations if rotations is not None else template_vertex_positions,
         2,
         (num_vertices, 3),
         dtype=template_vertex_positions.dtype,
