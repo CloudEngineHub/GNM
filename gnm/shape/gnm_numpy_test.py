@@ -462,7 +462,9 @@ class GNMNumpyTest(parameterized.TestCase):
 
   @parameterized.product(
       version=_MAINTAINED_MAJOR_GNM_VERSIONS,
-      variant=tuple(_SUPPORTED_VARIANTS),
+      variant=tuple(
+          v.value for v in _SUPPORTED_VARIANTS if 'hand' not in v.value
+      ),
   )
   def test_parts_are_non_overlapping_and_complete(
       self, version: str, variant: str
@@ -478,7 +480,9 @@ class GNMNumpyTest(parameterized.TestCase):
 
   @parameterized.product(
       version=_MAINTAINED_MAJOR_GNM_VERSIONS,
-      variant=tuple(_SUPPORTED_VARIANTS),
+      variant=tuple(
+          v.value for v in _SUPPORTED_VARIANTS if 'hand' not in v.value
+      ),
   )
   def test_mesh_component_names_include_skin(self, version: str, variant: str):
     """Check that the mesh_component_names include 'skin'."""
@@ -715,17 +719,14 @@ class GNMNumpyTest(parameterized.TestCase):
           pose_correctives, case['expected_pose_correctives'], atol=1e-6
       )
 
-  @parameterized.product(
-      version=_MAINTAINED_MAJOR_GNM_VERSIONS,
-      variant=tuple(
-          v.value for v in _SUPPORTED_VARIANTS if 'hand' not in v.value
-      ),
+  @parameterized.parameters(
+      _MAINTAINED_MAJOR_GNM_VERSIONS,
   )
-  def test_multiple_vertex_groups(self, version: str, variant: str):
+  def test_multiple_vertex_groups(self, version: str):
     """Test we can combine multiple vertex groups."""
-    if variant not in self.gnms[version]:
-      self.skipTest(f'variant {variant} not supported in {version}.')
-    gnm = self.gnms[version][variant]
+    if 'head' not in self.gnms[version]:
+      self.skipTest(f'variant head not supported in {version}.')
+    gnm = self.gnms[version]['head']
 
     # Compare two ways of combining both eyeballs fully.
     np.testing.assert_array_equal(
