@@ -741,9 +741,7 @@ def _scatter_indices(keep_vertices, num_vertices, xnp) -> Any:
         - 1
     )
   elif enp.lazy.is_jax_xnp(xnp):
-    # pytype: disable=import-error
-    import jax.numpy as jnp  # pylint: disable=g-import-not-at-top,import-outside-toplevel
-    # pytype: enable=import-error
+    jnp = enp.lazy.jnp
     mapper = jnp.full((num_vertices,), -1, dtype=jnp.int32)
     return mapper.at[keep_vertices].set(
         jnp.arange(len(keep_vertices), dtype=jnp.int32)
