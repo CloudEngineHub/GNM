@@ -505,7 +505,7 @@ class GNM(gnm_base.GNMBase):
 
   @property
   def skinning_segmentation(self) -> npt.NDArray[np.int32]:
-    return np.array(self.skinning_weights).argmax(axis=0)
+    return np.array(self.skinning_weights).argmax(axis=0)  # pyrefly: ignore[bad-return]
 
   @enp.check_and_normalize_arrays(strict=False)
   def vertex_positions_bind_pose(
