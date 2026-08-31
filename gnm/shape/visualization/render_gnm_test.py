@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for render_gnm."""
+"""Tests for rendering GNM meshes using the PyRender backend."""
 
 # pylint: disable=protected-access
 
@@ -25,7 +25,7 @@ import cv2
 from etils import epath
 from gnm.shape import gnm_numpy
 from gnm.shape.data.versions import gnm_test_catalog
-from gnm.shape.visualization import camera_conversions
+from gnm.shape.visualization import render_common
 from gnm.shape.visualization import render_gnm
 from gnm.shape.visualization import vertex_colors as vertex_colors_module
 import mediapy as media
@@ -141,7 +141,7 @@ class RenderGNMTest(parameterized.TestCase):
     """Tests we can render spins of different length."""
     gnm_np = self.gnms[version]
 
-    world_to_camera = render_gnm.get_spin_world_to_camera(
+    world_to_camera = render_common.get_spin_world_to_camera(
         gnm_np=gnm_np,
         vertices=gnm_np.template_vertex_positions,
         spin_period=spin_period,
@@ -173,7 +173,7 @@ class RenderGNMTest(parameterized.TestCase):
     parameters = _get_random_parameters((num_frames,), gnm_np)
     vertices = gnm_np(**parameters)
 
-    world_to_camera = render_gnm.get_spin_world_to_camera(
+    world_to_camera = render_common.get_spin_world_to_camera(
         gnm_np=gnm_np,
         vertices=vertices,
         has_time_dimension=True,
@@ -486,7 +486,7 @@ class RenderGNMTest(parameterized.TestCase):
     )
 
     eye_indices = gnm_np.vertex_group_indices('eye_interiors')
-    eye_image_points = render_gnm.project_points_for_gnm(
+    eye_image_points = render_common.project_points_for_gnm(
         points_world=vertices[eye_indices],
         vertices=vertices,
         gnm_np=gnm_np,
@@ -690,26 +690,6 @@ class RenderGNMBatchTest(parameterized.TestCase):
       )
 
 
-class TestGetBatchDim(parameterized.TestCase):
-  """Tests for _get_batch_dim helper."""
-
-  def test_get_batch_dim(self):
-    a, b, c = 1, 2, 3
-    array_a = np.zeros((a, b, c, 10))
-    array_b = None
-    array_c = np.zeros((b, c, 5, 5))
-    batch_dims = render_gnm._get_batch_dim(
-        (array_a, 1), (array_b, 2), (array_c, 2)
-    )
-    self.assertEqual(batch_dims, (a, b, c))
-
-  def test_get_batch_dim_raises_error(self):
-    array_a = np.zeros((1, 2, 3, 10))
-    array_b = np.zeros((4, 5, 6, 5))
-    with self.assertRaises(ValueError):
-      render_gnm._get_batch_dim((array_a, 1), (array_b, 1))
-
-
 class TestProjectPointsForGNM(parameterized.TestCase):
   """Tests projection of points for GNM."""
 
@@ -753,7 +733,7 @@ class TestProjectPointsForGNM(parameterized.TestCase):
     image = render_gnm.render_gnm(gnm_np, **self.rendering_kwargs)
 
     # Project face joints under the same camera setup.
-    joints_image = render_gnm.project_points_for_gnm(
+    joints_image = render_common.project_points_for_gnm(
         gnm_np=gnm_np,
         points_world=gnm_np.template_joint_positions,
         **self.rendering_kwargs,
@@ -763,7 +743,7 @@ class TestProjectPointsForGNM(parameterized.TestCase):
     points_world = np.array(
         [[0, gnm_np.template_vertex_positions[:, 1].max() + 0.05, 0]]
     )
-    external_point_image = render_gnm.project_points_for_gnm(
+    external_point_image = render_common.project_points_for_gnm(
         gnm_np=gnm_np,
         points_world=points_world,
         **self.rendering_kwargs,
@@ -796,7 +776,7 @@ class TestProjectPointsForGNM(parameterized.TestCase):
     """Tests projection of points for GNM in a spin."""
     gnm_np = self.gnms[version]
     spin_period = 30
-    world_to_camera = render_gnm.get_spin_world_to_camera(
+    world_to_camera = render_common.get_spin_world_to_camera(
         gnm_np=gnm_np,
         vertices=gnm_np.template_vertex_positions,
         spin_period=spin_period,
@@ -807,7 +787,7 @@ class TestProjectPointsForGNM(parameterized.TestCase):
     )
 
     # Project face joints under the same camera setup.
-    joints_image = render_gnm.project_points_for_gnm(
+    joints_image = render_common.project_points_for_gnm(
         gnm_np=gnm_np,
         points_world=gnm_np.template_joint_positions,
         world_to_camera=world_to_camera,
@@ -838,156 +818,6 @@ class TestProjectPointsForGNM(parameterized.TestCase):
     _write_gif(
         self.outputs_dir, f'project_points_spin_{version}', image, fps=30
     )
-
-
-class TestGetLookAtWorldToCamera(parameterized.TestCase):
-  """Tests for get_look_at_world_to_camera."""
-
-  gnms: dict[str, gnm_numpy.GNM]
-
-  @classmethod
-  def setUpClass(cls):
-    super().setUpClass()
-    cls.gnms = {}
-    for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS:
-      cls.gnms[version] = gnm_numpy.GNM.from_local(
-          gnm_numpy.GNMMajorVersion(version.removeprefix('v')),
-          gnm_numpy.GNMVariant.HEAD,
-      )
-
-  @parameterized.named_parameters(*[
-      (version, version)
-      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
-  ])
-  def test_basic(self, version):
-    gnm_np = self.gnms[version]
-    vertices = gnm_np.template_vertex_positions
-    world_to_camera_opencv = render_gnm.get_look_at_world_to_camera(
-        gnm_np=gnm_np,
-        vertices_world=vertices,
-    )
-    world_to_camera_opengl = camera_conversions.opencv_extrinsics_to_opengl(
-        world_to_camera_opencv
-    )
-    self.assertEqual(world_to_camera_opengl.shape, (4, 4))
-
-    with self.subTest('Approximately identity rotation.'):
-      np.testing.assert_allclose(
-          world_to_camera_opengl[:3, :3], np.eye(3), atol=0.02
-      )
-
-    with self.subTest('Translated from hockey mask.'):
-      hockey_mask_indices = gnm_np.vertex_group_indices('hockey_mask')
-      hockey_mask_z = vertices[hockey_mask_indices, 2].mean()
-      self.assertAlmostEqual(
-          -world_to_camera_opengl[2, 3],
-          hockey_mask_z + render_gnm._DEFAULT_CAMERA_DISTANCE,
-          delta=0.01,
-      )
-
-  @parameterized.named_parameters(*[
-      (version, version)
-      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
-  ])
-  def test_share_camera_no_batch(self, version):
-    gnm_np = self.gnms[version]
-    parameters = _get_random_parameters((), gnm_np)
-    vertices = gnm_np(**parameters)
-    world_to_camera_no_share = render_gnm.get_look_at_world_to_camera(
-        gnm_np=gnm_np,
-        vertices_world=vertices,
-        share_camera=False,
-    )
-
-    world_to_camera_share = render_gnm.get_look_at_world_to_camera(
-        gnm_np=gnm_np,
-        vertices_world=vertices,
-        share_camera=True,
-    )
-
-    np.testing.assert_allclose(world_to_camera_no_share, world_to_camera_share)
-
-  @parameterized.named_parameters(*[
-      (version, version)
-      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
-  ])
-  def test_share_camera(self, version):
-    gnm_np = self.gnms[version]
-    parameters = _get_random_parameters((10,), gnm_np)
-    vertices = gnm_np(**parameters)
-
-    world_to_camera_0 = render_gnm.get_look_at_world_to_camera(
-        gnm_np=gnm_np, vertices_world=vertices[0]
-    )
-
-    world_to_camera_share = render_gnm.get_look_at_world_to_camera(
-        gnm_np=gnm_np,
-        vertices_world=vertices,
-        share_camera=True,
-    )
-
-    world_to_camera_no_share = render_gnm.get_look_at_world_to_camera(
-        gnm_np=gnm_np,
-        vertices_world=vertices,
-        share_camera=False,
-    )
-
-    with self.subTest('Shared camera matches first camera.'):
-      np.testing.assert_allclose(
-          world_to_camera_share,
-          np.broadcast_to(world_to_camera_0, world_to_camera_share.shape),
-      )
-
-    with self.subTest('Unshared cameras are all different.'):
-      self.assertFalse(
-          np.allclose(
-              world_to_camera_no_share,
-              np.broadcast_to(
-                  world_to_camera_0, world_to_camera_no_share.shape
-              ),
-          )
-      )
-
-
-class TestGetFillFactorCameraToImage(parameterized.TestCase):
-  """Tests for get_fill_factor_camera_to_image."""
-
-  gnms: dict[str, gnm_numpy.GNM]
-
-  @classmethod
-  def setUpClass(cls):
-    super().setUpClass()
-    cls.gnms = {}
-    for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS:
-      cls.gnms[version] = gnm_numpy.GNM.from_local(
-          gnm_numpy.GNMMajorVersion(version.removeprefix('v')),
-          gnm_numpy.GNMVariant.HEAD,
-      )
-
-  @parameterized.named_parameters(*[
-      (version, version)
-      for version in gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
-  ])
-  def test_basic(self, version):
-    gnm_np = self.gnms[version]
-    vertices = gnm_np.template_vertex_positions
-    camera_to_image_opencv = render_gnm.get_fill_factor_camera_to_image(
-        gnm_np=gnm_np,
-        vertices=vertices,
-    )
-    camera_to_image_opengl = (
-        camera_conversions.opencv_intrinsics_matrix_to_opengl_view_matrix(
-            camera_to_image_opencv,
-            width=320,
-            height=240,
-            near=0.1,
-            far=100.0,
-        )
-    )
-    self.assertEqual(camera_to_image_opengl.shape, (4, 4))
-    with self.subTest('Lower triangular is all zeros.'):
-      submatrix = camera_to_image_opengl[:3, :3]
-      self.assertTrue((np.tril(submatrix, k=-1) == 0.0).all())
 
 
 if __name__ == '__main__':
