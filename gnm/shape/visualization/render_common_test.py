@@ -14,6 +14,7 @@
 
 """Tests for backend-agnostic helpers in render_common."""
 
+from typing import Any
 from absl.testing import absltest
 from absl.testing import parameterized
 from gnm.shape import gnm_numpy
@@ -76,6 +77,13 @@ class TestGetBatchDim(parameterized.TestCase):
     array_b = np.zeros((4, 5, 6, 5))
     with self.assertRaises(ValueError):
       render_common.get_batch_dim((array_a, 1), (array_b, 1))
+
+  def test_get_batch_dim_broadcast_singleton(self):
+    """Tests that get_batch_dim properly broadcasts singleton dimensions."""
+    array_a = np.zeros((3, 1, 10))
+    array_b = np.zeros((1, 4, 10))
+    batch_dims = render_common.get_batch_dim((array_a, 1), (array_b, 1))
+    self.assertEqual(batch_dims, (3, 4))
 
 
 class TestGetLookAtWorldToCamera(parameterized.TestCase):
@@ -345,6 +353,155 @@ class TestGetSpinWorldToCamera(parameterized.TestCase):
         spin_period=num_frames,
     )
     self.assertEqual(spin_period_w2c.shape, (num_frames, 4, 4))
+
+
+class TestRenderGNMMesh(parameterized.TestCase):
+  """Tests for render_gnm_mesh."""
+
+  gnm_np: gnm_numpy.GNM
+
+  @classmethod
+  def setUpClass(cls):
+    super().setUpClass()
+    cls.gnm_np = gnm_numpy.GNM.from_local(
+        gnm_numpy.GNMMajorVersion(
+            gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS[0].removeprefix('v')
+        ),
+        gnm_numpy.GNMVariant.HEAD,
+    )
+
+  def test_render_gnm_mesh_mock(self):
+    """Tests render_gnm_mesh prepares parameters and calls backend_render_fn."""
+    passed_kwargs = {}
+
+    def mock_backend(*args: Any, **kwargs: Any) -> render_common.FloatArray:
+      del args
+      nonlocal passed_kwargs
+      passed_kwargs = kwargs
+      n = kwargs['vertices'].shape[0]
+      w, h = kwargs['image_size']
+      return np.ones((n, h, w, 3), dtype=np.float32)
+
+    image_size = (64, 48)
+    res = render_common.render_gnm_mesh(
+        gnm_np=self.gnm_np,
+        backend_render_fn=mock_backend,
+        image_size=image_size,
+    )
+
+    self.assertEqual(res.shape, (48, 64, 3))
+    self.assertIn('vertices', passed_kwargs)
+    self.assertIn('triangles', passed_kwargs)
+    self.assertIn('world_to_camera', passed_kwargs)
+    self.assertIn('camera_to_image', passed_kwargs)
+    self.assertIn('texture', passed_kwargs)
+    self.assertIn('vertex_colors', passed_kwargs)
+    self.assertEqual(passed_kwargs['image_size'], image_size)
+
+  def test_render_gnm_mesh_convert_cameras(self):
+    """Tests that convert_cameras_to_opengl applies OpenGL conversion."""
+    passed_w2c = None
+
+    def mock_backend(*args: Any, **kwargs: Any) -> render_common.FloatArray:
+      del args
+      nonlocal passed_w2c
+      passed_w2c = kwargs['world_to_camera']
+      n = kwargs['vertices'].shape[0]
+      w, h = kwargs['image_size']
+      return np.zeros((n, h, w, 3), dtype=np.float32)
+
+    w2c_opencv = np.eye(4, dtype=np.float32)[None, ...]
+
+    # Without conversion
+    render_common.render_gnm_mesh(
+        gnm_np=self.gnm_np,
+        backend_render_fn=mock_backend,
+        world_to_camera=w2c_opencv,
+        convert_cameras_to_opengl=False,
+    )
+    assert passed_w2c is not None
+    np.testing.assert_allclose(passed_w2c, w2c_opencv)
+
+    # With conversion
+    render_common.render_gnm_mesh(
+        gnm_np=self.gnm_np,
+        backend_render_fn=mock_backend,
+        world_to_camera=w2c_opencv,
+        convert_cameras_to_opengl=True,
+    )
+    expected_opengl = camera_conversions.opencv_extrinsics_to_opengl(w2c_opencv)
+    assert passed_w2c is not None
+    np.testing.assert_allclose(passed_w2c, expected_opengl)
+
+  def test_render_gnm_mesh_errors(self):
+    """Tests validation errors in render_gnm_mesh."""
+
+    def mock_backend(*args: Any, **kwargs: Any) -> render_common.FloatArray:
+      del args, kwargs
+      return np.zeros((1, 10, 10, 3), dtype=np.float32)
+
+    with self.assertRaisesRegex(
+        ValueError, 'multiple_gnms=True, but vertices is only 2D'
+    ):
+      render_common.render_gnm_mesh(
+          gnm_np=self.gnm_np,
+          backend_render_fn=mock_backend,
+          multiple_gnms=True,
+      )
+
+    with self.assertRaisesRegex(ValueError, 'are not GNM part names'):
+      render_common.render_gnm_mesh(
+          gnm_np=self.gnm_np,
+          backend_render_fn=mock_backend,
+          texture={
+              'invalid_component': np.zeros((10, 10, 3), dtype=np.float32)
+          },
+      )
+
+    with self.assertRaisesRegex(
+        ValueError, 'Vertex colors must have 3 or 4 channels'
+    ):
+      render_common.render_gnm_mesh(
+          gnm_np=self.gnm_np,
+          backend_render_fn=mock_backend,
+          vertex_colors=np.zeros(
+              (*self.gnm_np.template_vertex_positions.shape[:-1], 2),
+              dtype=np.float32,
+          ),
+      )
+
+    with self.assertRaisesRegex(ValueError, 'Batch dimensions incompatible'):
+      render_common.render_gnm_mesh(
+          gnm_np=self.gnm_np,
+          backend_render_fn=mock_backend,
+          vertices=np.zeros(
+              (5, 10, *self.gnm_np.template_vertex_positions.shape),
+              dtype=np.float32,
+          ),
+          world_to_camera=np.zeros((6, 4, 4), dtype=np.float32),
+      )
+
+  def test_render_gnm_mesh_broadcast_singleton_batch_dims(self):
+    """Tests that render_gnm_mesh properly broadcasts singleton dimensions."""
+
+    def mock_backend(*args: Any, **kwargs: Any) -> render_common.FloatArray:
+      del args
+      n = kwargs['vertices'].shape[0]
+      w, h = kwargs['image_size']
+      return np.zeros((n, h, w, 3), dtype=np.float32)
+
+    image_size = (64, 48)
+    res = render_common.render_gnm_mesh(
+        gnm_np=self.gnm_np,
+        backend_render_fn=mock_backend,
+        vertices=np.zeros(
+            (3, 1, *self.gnm_np.template_vertex_positions.shape),
+            dtype=np.float32,
+        ),
+        world_to_camera=np.zeros((1, 4, 4, 4), dtype=np.float32),
+        image_size=image_size,
+    )
+    self.assertEqual(res.shape, (3, 4, 48, 64, 3))
 
 
 if __name__ == '__main__':

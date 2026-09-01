@@ -21,10 +21,12 @@ loading, camera/projection helpers and batching utilities.
 
 from collections.abc import Sequence
 import functools
+from typing import Protocol
 
 from etils import epath
 from gnm.shape import gnm_numpy
 from gnm.shape.visualization import camera_conversions
+from gnm.shape.visualization import vertex_colors as vertex_colors_module
 import imageio
 import immutabledict
 import numpy as np
@@ -55,6 +57,233 @@ class DefaultTexture:
 
 DEFAULT_TEXTURE = DefaultTexture()
 Texture = FloatArray | DefaultTexture | dict[str, FloatArray] | None
+
+
+class BackendRenderFn(Protocol):
+  """Protocol for backend rendering functions.
+
+  Backend render functions accept batched scene parameters and rasterize or
+  raytrace the scene, returning rendered images of shape (N, H, W, 3).
+  """
+
+  def __call__(
+      self,
+      vertices: FloatArray,
+      triangles: dict[str, np.ndarray],
+      world_to_camera: FloatArray,
+      camera_to_image: FloatArray,
+      vertex_normals: FloatArray,
+      vertex_uvs: FloatArray,
+      vertex_colors: FloatArray,
+      image_size: tuple[int, int] = DEFAULT_IMAGE_SIZE,
+      texture: dict[str, np.ndarray] | None = None,
+      multisample_antialiasing: int = 1,
+      background_color: FloatArray | None = None,
+      alpha: float = 1.0,
+      include_shading: bool = True,
+      verbose: bool = False,
+  ) -> np.ndarray:
+    ...
+
+
+def render_gnm_mesh(
+    gnm_np: gnm_numpy.GNM,
+    backend_render_fn: BackendRenderFn,
+    *,
+    vertices: FloatArray | None = None,
+    world_to_camera: FloatArray | None = None,
+    camera_to_image: FloatArray | None = None,
+    convert_cameras_to_opengl: bool = False,
+    image_size: tuple[int, int] = DEFAULT_IMAGE_SIZE,
+    triangles: str | npt.NDArray[np.integer] = '~eye_exteriors',
+    texture: Texture = DEFAULT_TEXTURE,
+    multisample_antialiasing: int = 2,
+    background_color: ColorOrImage = DEFAULT_BACKGROUND_COLOR,
+    alpha: float = 1.0,
+    vertex_colors: npt.NDArray[np.floating] | None = None,
+    multiple_gnms: bool = False,
+    include_shading: bool = True,
+    verbose: bool = False,
+) -> FloatArray:
+  """Shared rendering implementation for GNM mesh renderers.
+
+  Prepares geometry, textures, camera transformations, and batching, then
+  delegates the rasterization or raytracing to `backend_render_fn`.
+
+  Args:
+    gnm_np: The GNM model.
+    backend_render_fn: The backend function that accepts batched parameters and
+      returns rendered images of shape (N, H, W, 3).
+    vertices: Optional posed GNM vertices shaped (..., [M], V, 3). If not
+      provided, use template vertices.
+    world_to_camera: Optional world-to-camera transformations in OpenCV
+      convention, (..., 4, 4).
+    camera_to_image: Optional camera-to-image transformations in OpenCV
+      convention, (..., 4, 4) or (..., 3, 3).
+    convert_cameras_to_opengl: Whether to convert OpenCV camera matrices to
+      OpenGL conventions before passing to `backend_render_fn`.
+    image_size: The width and height of the rendered image in pixels: (W, H).
+    triangles: Determines which triangles to render. Either a vertex group name
+      or an array of triangle indices.
+    texture: Optional texture map(s) for GNM.
+    multisample_antialiasing: Multiplier for MSAA.
+    background_color: Color for the background: float, RGB tuple, or image.
+    alpha: Float in [0, 1] for blending rasterized GNM meshes with background.
+    vertex_colors: Per-vertex RGB(A) colors, (..., [M], V, 3 or 4).
+    multiple_gnms: If True, vertices is expected to be (..., M, V, 3).
+    include_shading: Whether to include shading/lighting in the render.
+    verbose: Whether to display progress.
+
+  Returns:
+    Rendered image array of shape (..., H, W, 3).
+
+  Raises:
+    ValueError: If multiple_gnms=True but vertices is 2D, or if texture keys
+      are not GNM part names, or if batch dimensions are incompatible.
+  """
+  width, height = image_size
+
+  triangle_dict = {}
+  all_triangle_indices = triangles
+  if isinstance(triangles, str):
+    all_triangle_indices = gnm_np.triangle_indices_for_group(triangles)
+
+  for part_name in gnm_np.mesh_component_names:
+    group_triangle_indices = gnm_np.triangle_indices_for_group(part_name)
+    intersection = np.intersect1d(group_triangle_indices, all_triangle_indices)
+    triangle_dict[part_name] = gnm_np.triangles[intersection]
+
+  if vertices is None:
+    vertices = gnm_np.template_vertex_positions
+
+  if not multiple_gnms:
+    vertices = vertices[..., None, :, :]  # Inject 'M' dimension.
+  elif (vertices_dim := vertices.ndim) < 3:
+    raise ValueError(
+        f'Called with {multiple_gnms=}, but vertices is only {vertices_dim}D.'
+    )
+
+  if vertex_colors is None:
+    vertex_colors = vertex_colors_module.get_vertex_colors(
+        gnm_np, vertex_colors_module.DEFAULT_COLOR
+    )
+  elif vertex_colors.shape[-1] == 4:
+    vertex_colors = vertex_colors[..., :3]
+  elif vertex_colors.shape[-1] != 3:
+    raise ValueError(
+        'Vertex colors must have 3 or 4 channels, got'
+        f' {vertex_colors.shape[-1]}.'
+    )
+
+  colors_has_m_dim = (0, 0, *vertex_colors.shape)[-3] == vertices.shape[-3]
+  if not colors_has_m_dim:
+    # 'M' dimension is not present but is required. Inject the dimension, and
+    # expand to match the size of vertices' M dimension.
+    vertex_colors = vertex_colors[..., None, :, :]
+    vertex_colors_shape = list(vertex_colors.shape)
+    vertex_colors_shape[-3] = vertices.shape[-3]
+    vertex_colors = np.broadcast_to(vertex_colors, vertex_colors_shape)
+
+  # Define default camera params based on the first GNM in the 'M' dimension.
+  vertices_for_cameras = vertices[..., 0, :, :]
+
+  if world_to_camera is None:
+    world_to_camera = get_look_at_world_to_camera(
+        gnm_np,
+        vertices_for_cameras,
+    )
+
+  if camera_to_image is None:
+    camera_to_image = get_fill_factor_camera_to_image(
+        gnm_np, vertices_for_cameras, image_size=image_size
+    )
+
+  if convert_cameras_to_opengl:
+    # Convert from OpenCV to OpenGL convention.
+    world_to_camera = camera_conversions.opencv_extrinsics_to_opengl(
+        world_to_camera
+    )
+    camera_to_image = (
+        camera_conversions.opencv_intrinsics_matrix_to_opengl_view_matrix(
+            camera_to_image,
+            width=image_size[0],
+            height=image_size[1],
+            near=DEFAULT_NEAR,
+            far=DEFAULT_FAR,
+        )
+    )
+
+  vertex_normals = gnm_np.compute_vertex_normals(vertices)
+
+  # Broadcast a background color to an image.
+  if not isinstance(background_color, np.ndarray) or background_color.ndim == 1:
+    background_color = np.broadcast_to(background_color, (height, width, 3))
+
+  # Convert background color to float [0-1].
+  if background_color.dtype == np.uint8:
+    background_color = background_color.astype(np.float32) / 255.0
+
+  texture_dict = load_texture(gnm_np, texture)
+  textures = list(texture_dict.values())
+  texture_keys = texture_dict.keys()
+  if not set(texture_keys).issubset(gnm_np.mesh_component_names):
+    missing_parts = set(texture_keys) - set(gnm_np.mesh_component_names)
+    raise ValueError(
+        f'Texture keys {missing_parts} are not GNM part names'
+        f' {gnm_np.mesh_component_names}.'
+    )
+
+  # Find the maximum batch dimension that satisfies all batch-able arguments.
+  try:
+    batch_dims = get_batch_dim(
+        (vertices, 3),
+        (vertex_colors, 3),
+        (world_to_camera, 2),
+        (camera_to_image, 2),
+        (background_color, 3),
+        *[(t, 3) for t in textures],
+    )
+  except ValueError as e:
+    raise ValueError(
+        f' Batch dimensions incompatible: vertices {vertices.shape},'
+        f' vertex_colors {vertex_colors.shape}, world_to_camera'
+        f' {world_to_camera.shape}, camera_to_image {camera_to_image.shape},'
+        f' background_color {background_color.shape}, texture'
+        f' {[t.shape for t in textures]}.'
+    ) from e
+
+  def batchify(arr, non_batch_dims):
+    """Broadcast to batch dimensions, and flatten the batch dimensions."""
+    arr = np.broadcast_to(arr, (*batch_dims, *arr.shape[-non_batch_dims:]))
+    return arr.reshape(int(np.prod(batch_dims)), *arr.shape[-non_batch_dims:])
+
+  vertices = batchify(vertices, 3)
+  vertex_normals = batchify(vertex_normals, 3)
+  vertex_colors = batchify(vertex_colors, 3)
+  world_to_camera = batchify(world_to_camera, 2)
+  camera_to_image = batchify(camera_to_image, 2)
+  background_color = batchify(background_color, 3)
+  batched_textures = {part: batchify(x, 3) for part, x in texture_dict.items()}
+
+  renders = backend_render_fn(
+      vertices=vertices,
+      triangles=triangle_dict,
+      world_to_camera=world_to_camera,
+      camera_to_image=camera_to_image,
+      image_size=image_size,
+      texture=batched_textures,
+      vertex_colors=vertex_colors,
+      multisample_antialiasing=multisample_antialiasing,
+      vertex_uvs=gnm_np.vertex_uvs,
+      vertex_normals=vertex_normals,
+      background_color=background_color,
+      alpha=alpha,
+      include_shading=include_shading,
+      verbose=verbose,
+  )
+
+  color = renders.reshape(*batch_dims, height, width, 3)
+  return color
 
 
 def project_points_for_gnm(
@@ -672,10 +901,7 @@ def get_batch_dim(*arrays: tuple[np.ndarray | None, int]) -> tuple[int, ...]:
       continue
     batch_dims.append(array.shape[:-non_batch_dims])
 
-  max_batch_dims = max(batch_dims, key=len)
+  if not batch_dims:
+    return ()
 
-  # Verify that all arrays can be broadcast together.
-  for batch_dim in batch_dims:
-    np.broadcast_shapes(batch_dim, max_batch_dims)
-
-  return max_batch_dims
+  return np.broadcast_shapes(*batch_dims)
