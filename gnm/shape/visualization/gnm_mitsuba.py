@@ -20,12 +20,94 @@ from collections.abc import Mapping
 from typing import Any
 
 import cv2
-import drjit as dr  # pyrefly: ignore[missing-import]
+import drjit as dr
 from gnm.shape.visualization import integrators
-import mitsuba as mi  # pyrefly: ignore[missing-import]
+import mitsuba as mi
 import numpy as np
 import numpy.typing as npt
 import tqdm
+
+MITSUBA_USE_LEGACY_MESH_API = tuple(
+    int(x)
+    for x in (
+        str(mi.__version__).split('.')  # pyrefly: ignore[missing-attribute]
+    )
+    if x.isdigit()
+) < (3, 9, 1)
+
+
+def _create_mitsuba_mesh_legacy(
+    vertices: npt.NDArray[np.floating],
+    faces: npt.NDArray[np.integer],
+    *,
+    texture_coordinates: npt.NDArray[np.floating] | None = None,
+    vertex_normals: npt.NDArray[np.floating] | None = None,
+    properties: mi.Properties | None = None,
+    flip_texture_coordinates: bool = False,
+    vertex_colors: npt.NDArray[np.floating] | None = None,
+) -> mi.Mesh:
+  """Instantiates a Mitsuba mesh using the legacy API (<= 3.9.1)."""
+  if properties is None:
+    properties = mi.Properties()
+
+  has_vertex_normals = (vertex_normals is not None) and not properties.get(
+      'face_normals', False
+  )
+
+  mi_mesh = mi.Mesh(  # pyrefly: ignore[missing-argument]
+      name='',
+      vertex_count=vertices.shape[0],  # pyrefly: ignore[unexpected-keyword]
+      face_count=faces.shape[0],  # pyrefly: ignore[unexpected-keyword]
+      props=properties,  # pyrefly: ignore[unexpected-keyword]
+      has_vertex_normals=(  # pyrefly: ignore[unexpected-keyword]
+          has_vertex_normals
+      ),
+      has_vertex_texcoords=(  # pyrefly: ignore[unexpected-keyword]
+          texture_coordinates is not None
+      ),
+  )
+  if vertex_colors is not None:
+    if vertex_colors.ndim == 2 and vertex_colors.shape[1] == 4:
+      vertex_colors = vertex_colors[:, :3]
+    if vertex_colors.dtype != np.float32:
+      raise ValueError(
+          f'Vertex colors must be of type float32, got {vertex_colors.dtype}'
+      )
+    mi_mesh.add_attribute(
+        'vertex_colors',
+        vertex_colors.shape[1],
+        vertex_colors.ravel().tolist(),  # pyrefly: ignore[bad-argument-count]
+    )
+
+  params = mi.traverse(mi_mesh)
+  params['vertex_positions'] = np.ravel(vertices)
+  if texture_coordinates is not None:
+    if texture_coordinates.dtype != np.float32:
+      raise ValueError(
+          'Texture coordinates must be of type float32, got'
+          f' {texture_coordinates.dtype}'
+      )
+
+    if (
+        flip_texture_coordinates
+        and texture_coordinates.ndim == 2
+        and texture_coordinates.shape[1] == 2
+    ):
+      texture_coordinates = np.array(texture_coordinates)
+      texture_coordinates[:, 1] = 1 - texture_coordinates[:, 1]
+    params['vertex_texcoords'] = np.ravel(texture_coordinates)
+
+  params['faces'] = np.ravel(faces)
+
+  if vertex_colors is not None:
+    params['vertex_colors'] = np.ravel(vertex_colors)
+
+  if vertex_normals is not None:
+    params['vertex_normals'] = np.ravel(vertex_normals)
+
+  params.update()
+
+  return mi_mesh
 
 
 def create_mitsuba_mesh(
@@ -66,33 +148,20 @@ def create_mitsuba_mesh(
   if not mi.variant():
     mi.set_variant('cuda_ad_rgb', 'llvm_ad_rgb')
 
-  if properties is None:
-    properties = mi.Properties()
-  has_vertex_normals = (vertex_normals is not None) and not properties.get(
-      'face_normals', False
-  )
-
-  mi_mesh = mi.Mesh(
-      name='',
-      vertex_count=vertices.shape[0],
-      face_count=faces.shape[0],
-      props=properties,
-      has_vertex_normals=has_vertex_normals,
-      has_vertex_texcoords=texture_coordinates is not None,
-  )
-  if vertex_colors is not None:
-    if vertex_colors.ndim == 2 and vertex_colors.shape[1] == 4:
-      vertex_colors = vertex_colors[:, :3]
-    if vertex_colors.dtype != np.float32:
-      raise ValueError(
-          f'Vertex colors must be of type float32, got {vertex_colors.dtype}'
-      )
-    mi_mesh.add_attribute(
-        'vertex_colors', vertex_colors.shape[1], vertex_colors.ravel().tolist()
+  if MITSUBA_USE_LEGACY_MESH_API:
+    return _create_mitsuba_mesh_legacy(
+        vertices=vertices,
+        faces=faces,
+        texture_coordinates=texture_coordinates,
+        vertex_normals=vertex_normals,
+        properties=properties,
+        flip_texture_coordinates=flip_texture_coordinates,
+        vertex_colors=vertex_colors,
     )
 
-  params = mi.traverse(mi_mesh)
-  params['vertex_positions'] = np.ravel(vertices)
+  if properties is None:
+    properties = mi.Properties()
+
   if texture_coordinates is not None:
     if texture_coordinates.dtype != np.float32:
       raise ValueError(
@@ -107,17 +176,38 @@ def create_mitsuba_mesh(
     ):
       texture_coordinates = np.array(texture_coordinates)
       texture_coordinates[:, 1] = 1 - texture_coordinates[:, 1]
-    params['vertex_texcoords'] = np.ravel(texture_coordinates)
 
-  params['faces'] = np.ravel(faces)
+  normals = mi.TensorXf32()
+  if vertex_normals is not None and not properties.get('face_normals', False):
+    normals = mi.TensorXf32(vertex_normals.astype(np.float32))
+
+  texcoords = (
+      mi.TensorXf32(texture_coordinates.astype(np.float32))
+      if texture_coordinates is not None
+      else mi.TensorXf32()
+  )
+
+  mi_mesh = mi.Mesh(properties)
+  mi_mesh.from_fields(  # pyrefly: ignore[missing-attribute]
+      faces=mi.TensorXu32(  # pyrefly: ignore[not-callable]
+          faces.astype(np.uint32)
+      ),
+      positions=mi.TensorXf32(vertices.astype(np.float32)),
+      normals=normals,
+      texcoords=texcoords,
+  )
 
   if vertex_colors is not None:
-    params['vertex_colors'] = np.ravel(vertex_colors)
-
-  if vertex_normals is not None:
-    params['vertex_normals'] = np.ravel(vertex_normals)
-
-  params.update()
+    if vertex_colors.ndim == 2 and vertex_colors.shape[1] == 4:
+      vertex_colors = vertex_colors[:, :3]
+    if vertex_colors.dtype != np.float32:
+      raise ValueError(
+          f'Vertex colors must be of type float32, got {vertex_colors.dtype}'
+      )
+    mi_mesh.add_attribute(  # pyrefly: ignore[missing-argument]
+        'vertex_colors',
+        vertex_colors.astype(np.float32),  # pyrefly: ignore[bad-argument-type]
+    )
 
   return mi_mesh
 

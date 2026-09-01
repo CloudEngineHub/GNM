@@ -21,6 +21,7 @@ from absl.testing import parameterized
 from gnm.shape import gnm_numpy
 from gnm.shape.data.versions import gnm_test_catalog
 from gnm.shape.visualization import gnm_mitsuba
+import mitsuba as mi
 import numpy as np
 import numpy.typing as npt
 
@@ -35,10 +36,6 @@ class GNMMitsubaTest(parameterized.TestCase):
   @classmethod
   def setUpClass(cls):
     super().setUpClass()
-
-    # pylint: disable=g-import-not-at-top,import-outside-toplevel
-    import mitsuba as mi
-    # pylint: enable=g-import-not-at-top,import-outside-toplevel
 
     if not mi.variant():
       mi.set_variant('cuda_ad_rgb', 'llvm_ad_rgb')
@@ -118,8 +115,20 @@ class GNMMitsubaTest(parameterized.TestCase):
     )
     self.assertEqual(mesh.vertex_count(), vertices.shape[0])
     self.assertEqual(mesh.face_count(), faces.shape[0])
-    self.assertTrue(mesh.has_vertex_normals())
-    self.assertTrue(mesh.has_vertex_texcoords())
+    if gnm_mitsuba.MITSUBA_USE_LEGACY_MESH_API:
+      self.assertTrue(
+          mesh.has_vertex_normals()  # pyrefly: ignore[missing-attribute]
+      )
+      self.assertTrue(
+          mesh.has_vertex_texcoords()  # pyrefly: ignore[missing-attribute]
+      )
+    else:
+      self.assertTrue(
+          mesh.has_normals()  # pyrefly: ignore[missing-attribute]
+      )
+      self.assertTrue(
+          mesh.has_texcoords()  # pyrefly: ignore[missing-attribute]
+      )
     self.assertTrue(mesh.has_attribute('vertex_colors'))
 
   def test_create_mitsuba_mesh_rgba_colors(self):
@@ -147,7 +156,14 @@ class GNMMitsubaTest(parameterized.TestCase):
         faces=faces.astype(np.int32),
         vertex_normals=None,
     )
-    self.assertFalse(mesh.has_vertex_normals())
+    if gnm_mitsuba.MITSUBA_USE_LEGACY_MESH_API:
+      self.assertFalse(
+          mesh.has_vertex_normals()  # pyrefly: ignore[missing-attribute]
+      )
+    else:
+      self.assertTrue(
+          mesh.has_normals()  # pyrefly: ignore[missing-attribute]
+      )
 
   def test_create_mitsuba_mesh_no_colors(self):
     """Tests that a Mitsuba mesh can be created without vertex colors."""
