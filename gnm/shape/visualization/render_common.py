@@ -38,7 +38,7 @@ ColorOrImage = npt.NDArray[np.uint8] | FloatArray | Sequence[float] | float
 _pkg = __package__ or 'gnm.shape.visualization'
 _TEXTURES_DIR = epath.resource_path(_pkg).parent / 'data' / 'textures'
 EDGEFLOW_TEXTURE_BY_BODY_PART = immutabledict.immutabledict({
-    gnm_numpy.GNMBodyPart.HEAD: str(_TEXTURES_DIR / 'edgeflow_bw_4k.png'),
+    gnm_numpy.GNMBodyPart.HEAD: _TEXTURES_DIR / 'edgeflow_bw_4k.png',
 })
 
 # Default parameters for scene.
@@ -773,7 +773,7 @@ def _right_handed_perspective(
 
 
 @functools.cache
-def load_edgeflow_texture(texture_path: str | None) -> FloatArray | None:
+def load_edgeflow_texture(texture_path: epath.Path | None) -> FloatArray | None:
   """Loads the edgeflow texture from a given path.
 
   Args:
@@ -784,7 +784,7 @@ def load_edgeflow_texture(texture_path: str | None) -> FloatArray | None:
   """
   if texture_path is None:
     return None
-  with epath.Path(texture_path).open('rb') as f:
+  with texture_path.open('rb') as f:
     image = imageio.imread(f).astype(np.float32)
   image = (image / np.iinfo(np.uint8).max) * 0.5 + 0.5
   image.flags.writeable = False
