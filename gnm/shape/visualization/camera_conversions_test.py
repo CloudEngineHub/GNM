@@ -14,7 +14,7 @@
 
 """Tests for camera_conversions."""
 
-import os
+import tempfile
 from typing import TypeAlias
 
 from absl.testing import absltest
@@ -56,7 +56,8 @@ _opencv_extrinsics_to_opengl_tf = (
 
 _Rotation: TypeAlias = transform.Rotation
 
-_OUTPUTS_DIR = epath.Path(os.environ["TEST_UNDECLARED_OUTPUTS_DIR"])
+_OUTPUTS_TMPDIR = tempfile.TemporaryDirectory()
+_OUTPUTS_DIR = epath.Path(_OUTPUTS_TMPDIR.name)
 
 _RECTANGLE_COLOR = (00, 00, 255)
 

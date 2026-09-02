@@ -16,7 +16,7 @@
 
 # pylint: disable=protected-access
 
-import os
+import tempfile
 from absl.testing import absltest
 from absl.testing import parameterized
 from etils import epath
@@ -29,7 +29,8 @@ import numpy as np
 _MAINTAINED_MAJOR_GNM_VERSIONS = gnm_test_catalog.MAINTAINED_MAJOR_VERSIONS
 _MAJOR_VERSION_TO_VARIANTS_MAP = gnm_test_catalog.MAJOR_VERSION_TO_VARIANTS_MAP
 
-_OUTPUTS_DIR = epath.Path(os.environ['TEST_UNDECLARED_OUTPUTS_DIR'])
+_OUTPUTS_TMPDIR = tempfile.TemporaryDirectory()
+_OUTPUTS_DIR = epath.Path(_OUTPUTS_TMPDIR.name)
 
 
 class GNMPyrenderTest(parameterized.TestCase):
