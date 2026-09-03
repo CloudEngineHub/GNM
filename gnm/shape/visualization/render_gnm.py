@@ -54,9 +54,9 @@ def render_gnm(
   the face. Note that this function assumes that the world-to-camera and
   camera-to-image transformations follow OpenCV's convention. This means
   that the camera coordinate system has X pointing to the right, Y downwards,
-  and Z towards the scene. The camera-to-image
-  should project points in the camera coordinate system to normalized
-  coordinates in [-1, 1].
+  and Z towards the scene. The camera_to_image should project points in the
+  camera coordinate system to pixel coordinates where (0, 0) is the coordinate
+  of the top left pixel's top left corner.
 
   Recall the following GNM dimension notation (from gnm_numpy.py):
   * N: Size of batch.
