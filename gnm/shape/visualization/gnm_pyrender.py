@@ -21,7 +21,6 @@ from typing import Any
 import cv2
 import numpy as np
 import tqdm
-import trimesh
 
 os.environ['PYOPENGL_PLATFORM'] = 'osmesa'
 import pyrender  # pylint: disable=wrong-import-position
@@ -170,8 +169,8 @@ def render(
 
   # Set-up light.
   light_direction_camera = _LIGHT_DIRECTION / np.linalg.norm(_LIGHT_DIRECTION)
-  light_pose_camera = trimesh.geometry.align_vectors(
-      [0, 0, 1], light_direction_camera
+  light_pose_camera = _align_vectors(
+      np.array([0.0, 0.0, 1.0]), light_direction_camera
   )
   light = pyrender.DirectionalLight(
       color=np.ones(3), intensity=_LIGHT_INTENSITY
@@ -332,3 +331,16 @@ def _override_shader_cache(renderer: pyrender.OffscreenRenderer):
     cache = r._program_cache
     r._program_cache = CustomShaderCache(cache)
   # pylint: enable=protected-access
+
+
+def _align_vectors(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+  """Returns a 4x4 transform that rotates vector `a` to vector `b`."""
+  a = np.asarray(a, dtype=np.float64)
+  b = np.asarray(b, dtype=np.float64)
+  u_a = np.linalg.svd(np.reshape(a, (-1, 1)))[0]
+  u_b = np.linalg.svd(np.reshape(b, (-1, 1)))[0]
+  u_a[:, -1] *= np.linalg.det(u_a)
+  u_b[:, -1] *= np.linalg.det(u_b)
+  pose = np.eye(4, dtype=np.float32)
+  pose[:3, :3] = u_b @ u_a.T
+  return pose
