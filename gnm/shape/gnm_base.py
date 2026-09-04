@@ -63,7 +63,7 @@ class GNMBase(abc.ABC):
     pass
 
   @property
-  def major_version(self) -> str:
+  def major_version(self) -> gnm_specs.GNMMajorVersion:
     """Returns the major version of the model."""
     return gnm_data_loader.full_version_to_major(self.version)
 
